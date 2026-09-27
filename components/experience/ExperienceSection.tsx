@@ -1,18 +1,29 @@
+"use client";
+
+import { motion, useReducedMotion } from "motion/react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Container } from "@/components/ui/Container";
 import { Reveal } from "@/components/ui/Reveal";
 import { experience } from "@/data/experience";
 import { cn } from "@/lib/utils";
+import { DRAMATIC } from "@/lib/motion";
 
 export function ExperienceSection() {
+  const reduceMotion = useReducedMotion();
+
   return (
     <section id="experience" className="border-b border-border py-20 sm:py-28">
       <Container>
         <SectionHeader index="05" label="EXPERIENCE" title="Experience" />
 
         <ol className="relative flex flex-col gap-10 pl-8 sm:gap-12 sm:pl-10">
-          <div
+          <motion.div
             className="absolute top-2 bottom-2 left-[5px] w-px bg-border-strong sm:left-[7px]"
+            style={{ transformOrigin: "top" }}
+            initial={reduceMotion ? undefined : { scaleY: 0 }}
+            whileInView={reduceMotion ? undefined : { scaleY: 1 }}
+            viewport={{ once: true }}
+            transition={DRAMATIC}
             aria-hidden="true"
           />
 

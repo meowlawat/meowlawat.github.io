@@ -3,13 +3,10 @@
 import dynamic from "next/dynamic";
 import { useRef, type PointerEvent } from "react";
 import { motion, useReducedMotion } from "motion/react";
+import { ArrowUpRight } from "lucide-react";
 import { GithubIcon, LinkedinIcon, OrcidIcon } from "@/components/ui/icons";
 import { Container } from "@/components/ui/Container";
-import { MagneticButton } from "@/components/ui/MagneticButton";
 import { site } from "@/data/site";
-import { research } from "@/data/research";
-import { projects } from "@/data/projects";
-import { githubSnapshot } from "@/data/generated/github";
 import { DRAMATIC, SECTION } from "@/lib/motion";
 
 const HeroTopology = dynamic(
@@ -27,15 +24,9 @@ const item = {
   visible: { opacity: 1, y: 0, transition: DRAMATIC },
 };
 
-// Real, data-derived — never hardcoded copy pretending to be a stat.
-const METADATA = [
-  { label: "Research", value: String(research.length).padStart(2, "0") },
-  { label: "Featured systems", value: String(projects.length).padStart(2, "0") },
-  {
-    label: "GitHub, curated",
-    value: String(githubSnapshot.repos.length).padStart(2, "0"),
-  },
-  { label: "Based in", value: site.location.split(",")[0] },
+const EDITORIAL_LINKS = [
+  { href: "#research", index: "01", label: "Research" },
+  { href: "#projects", index: "02", label: "Systems" },
 ];
 
 export function Hero() {
@@ -55,12 +46,27 @@ export function Hero() {
       id="home"
       ref={spotlightRef}
       onPointerMove={handlePointerMove}
-      className="relative isolate flex min-h-[100svh] flex-col overflow-hidden border-b border-border pt-24"
-      style={{
-        backgroundImage:
-          "radial-gradient(500px circle at var(--x, 50%) var(--y, 20%), rgba(79,140,255,0.06), transparent 65%)",
-      }}
+      className="relative isolate flex min-h-[100svh] flex-col overflow-hidden border-b border-border pt-20"
     >
+      {/* Ambient blue field: a large, always-on atmospheric wash anchored
+          top-right, plus a pointer-tracked one — real color presence, not
+          a tiny spotlight. */}
+      <div
+        aria-hidden="true"
+        className="absolute -top-1/4 -right-1/4 -z-20 size-[70vw] rounded-full opacity-[0.16] blur-3xl"
+        style={{
+          background:
+            "radial-gradient(circle, var(--accent) 0%, transparent 70%)",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-20 opacity-[0.12] blur-3xl"
+        style={{
+          background:
+            "radial-gradient(600px circle at var(--x, 50%) var(--y, 30%), var(--accent), transparent 70%)",
+        }}
+      />
       <HeroTopology />
 
       <Container className="flex flex-1 flex-col justify-center">
@@ -68,110 +74,54 @@ export function Hero() {
           initial={reduceMotion ? undefined : "hidden"}
           animate={reduceMotion ? undefined : "visible"}
           variants={reduceMotion ? undefined : container}
-          className="grid gap-10 lg:grid-cols-12 lg:items-end"
+          className="flex flex-col gap-8"
         >
-          <div className="flex flex-col gap-6 lg:col-span-8">
-            <motion.div
-              variants={reduceMotion ? undefined : item}
-              className="flex items-center gap-2 font-mono text-xs tracking-[0.18em] text-muted-2"
-            >
-              <span className="relative flex size-1.5">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-accent opacity-60 motion-reduce:animate-none" />
-                <span className="relative inline-flex size-1.5 rounded-full bg-accent" />
-              </span>
-              SYSTEMS / SECURITY / ML
-            </motion.div>
+          <motion.div
+            variants={reduceMotion ? undefined : item}
+            className="flex items-center gap-2 font-mono text-xs tracking-[0.18em] text-muted-2"
+          >
+            <span className="relative flex size-1.5">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-accent opacity-60 motion-reduce:animate-none" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-accent" />
+            </span>
+            SYSTEMS / SECURITY / ML
+          </motion.div>
 
-            <motion.h1
-              variants={reduceMotion ? undefined : item}
-              className="font-display text-[clamp(2.75rem,6vw+1rem,6rem)] leading-[0.92] font-semibold tracking-tight text-foreground"
-            >
-              <span className="block">Hardik</span>
-              <span className="block">Ahlawat</span>
-            </motion.h1>
-
-            <motion.p
-              variants={reduceMotion ? undefined : item}
-              className="font-mono text-xs tracking-[0.14em] text-muted sm:text-sm"
-            >
-              RESEARCH. EXPERIMENT. MEASURE. BUILD.
-            </motion.p>
-
-            <motion.p
-              variants={reduceMotion ? undefined : item}
-              className="max-w-lg text-balance leading-relaxed text-muted"
-            >
-              {site.tagline}
-            </motion.p>
-
-            <motion.div
-              variants={reduceMotion ? undefined : item}
-              className="mt-2 flex flex-wrap items-center gap-3"
-            >
-              <MagneticButton href="#research" variant="primary">
-                View Research
-              </MagneticButton>
-              <MagneticButton href="#projects" variant="secondary">
-                View Projects
-              </MagneticButton>
-            </motion.div>
-
-            <motion.div
-              variants={reduceMotion ? undefined : item}
-              className="mt-4 flex items-center gap-5 text-muted"
-            >
-              <a
-                href={site.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="GitHub"
-                className="transition-colors hover:text-foreground"
-              >
-                <GithubIcon className="size-[18px]" />
-              </a>
-              <a
-                href={site.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="LinkedIn"
-                className="transition-colors hover:text-foreground"
-              >
-                <LinkedinIcon className="size-[18px]" />
-              </a>
-              <a
-                href={site.orcid}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="ORCID"
-                className="transition-colors hover:text-foreground"
-              >
-                <OrcidIcon className="size-[18px] rounded-full" />
-              </a>
-            </motion.div>
-          </div>
+          <motion.h1
+            variants={reduceMotion ? undefined : item}
+            className="font-display -ml-1 text-[clamp(3.5rem,15vw,13rem)] leading-[0.82] font-semibold tracking-tighter text-foreground uppercase"
+          >
+            <span className="block">Hardik</span>
+            <span className="block text-transparent [-webkit-text-stroke:1.5px_var(--foreground)]">
+              Ahlawat
+            </span>
+          </motion.h1>
 
           <motion.div
             variants={reduceMotion ? undefined : item}
-            className="flex flex-col gap-4 border-t border-border pt-4 lg:col-span-4 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8"
+            className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
           >
-            {METADATA.map((m) => (
-              <div key={m.label} className="flex items-baseline justify-between gap-4">
-                <span className="text-xs text-muted-2">{m.label}</span>
-                <span className="font-mono text-sm text-foreground">
-                  {m.value}
-                </span>
-              </div>
-            ))}
-            <div className="flex items-baseline justify-between gap-4 border-t border-border pt-4">
-              <span className="text-xs text-muted-2">Status</span>
-              <span className="flex items-center gap-1.5 font-mono text-sm text-verified">
-                <span className="relative flex size-1.5">
-                  <span className="node-pulse absolute inline-flex size-full rounded-full bg-verified opacity-60 motion-reduce:hidden" />
-                  <span className="relative inline-flex size-1.5 rounded-full bg-verified" />
-                </span>
-                SYSTEM ONLINE
+            <p className="max-w-md text-balance leading-relaxed text-muted">
+              <span className="font-mono text-xs tracking-[0.14em] text-muted-2">
+                RESEARCH. EXPERIMENT. MEASURE. BUILD.
               </span>
-            </div>
+              <br />
+              <span className="text-foreground/80">{site.tagline}</span>
+            </p>
+
+            <nav className="flex flex-col gap-1">
+              {EDITORIAL_LINKS.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="group flex items-center gap-3 font-mono text-sm text-muted transition-colors duration-150 hover:text-foreground"
+                >
+                  <span className="text-muted-2">{link.index}</span>
+                  <span className="uppercase tracking-wide">{link.label}</span>
+                  <ArrowUpRight className="size-4 text-accent transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                </a>
+              ))}
+            </nav>
           </motion.div>
         </motion.div>
       </Container>
@@ -179,11 +129,46 @@ export function Hero() {
       <motion.div
         initial={reduceMotion ? undefined : { opacity: 0 }}
         animate={reduceMotion ? undefined : { opacity: 1 }}
-        transition={{ ...SECTION, delay: 0.6 }}
+        transition={{ ...SECTION, delay: 0.7 }}
         className="relative z-10 border-t border-border"
       >
-        <Container className="flex h-12 items-center justify-between font-mono text-[11px] tracking-[0.1em] text-muted-2">
-          <span>SCROLL</span>
+        <Container className="flex h-14 items-center justify-between font-mono text-[11px] tracking-[0.1em] text-muted-2">
+          <span className="flex items-center gap-1.5 text-verified">
+            <span className="relative flex size-1.5">
+              <span className="node-pulse absolute inline-flex size-full rounded-full bg-verified opacity-60 motion-reduce:hidden" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-verified" />
+            </span>
+            SYSTEM ONLINE
+          </span>
+          <div className="flex items-center gap-4 text-muted">
+            <a
+              href={site.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub"
+              className="transition-colors hover:text-foreground"
+            >
+              <GithubIcon className="size-[15px]" />
+            </a>
+            <a
+              href={site.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn"
+              className="transition-colors hover:text-foreground"
+            >
+              <LinkedinIcon className="size-[15px]" />
+            </a>
+            <a
+              href={site.orcid}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="ORCID"
+              className="transition-colors hover:text-foreground"
+            >
+              <OrcidIcon className="size-[15px] rounded-full" />
+            </a>
+          </div>
           <span>01 / 10</span>
         </Container>
       </motion.div>

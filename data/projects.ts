@@ -26,7 +26,7 @@ export const projects: Project[] = [
         { id: "network", label: "MPLS Network" },
         { id: "telemetry", label: "Telemetry" },
         { id: "prediction", label: "LightGBM Prediction" },
-        { id: "blast", label: "Blast Radius Analysis" },
+        { id: "blast", label: "Blast Radius Analysis", state: "verified" },
         { id: "llm", label: "Local LLM Copilot" },
         { id: "operator", label: "Operator" },
       ],

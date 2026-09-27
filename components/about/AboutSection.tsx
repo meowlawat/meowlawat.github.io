@@ -4,33 +4,34 @@ import { Reveal } from "@/components/ui/Reveal";
 import { site } from "@/data/site";
 import { research } from "@/data/research";
 import { experience } from "@/data/experience";
+import { cn } from "@/lib/utils";
 
 const IDENTITY = [
   {
     label: "Security",
-    fact: "Penetration testing, TEE isolation, vulnerability research",
-    detail: `Documented findings from ${experience[1]?.org ?? "independent research"} and CVSS-based risk work at ${experience[0]?.org ?? "current role"}.`,
+    fact: "Pentest · TEE · vuln research",
+    detail: `Findings at ${experience[1]?.org ?? "independent research"}; CVSS risk work at ${experience[0]?.org ?? "current role"}.`,
   },
   {
     label: "Systems",
-    fact: "Air-gapped, autonomous, zero outbound dependency",
-    detail: "Network simulation through prediction to recovery, built to run entirely offline.",
+    fact: "Air-gapped · autonomous",
+    detail: "Network simulation through prediction to recovery, offline end to end.",
   },
   {
     label: "Machine Learning",
-    fact: "LSTM autoencoders, sequence models, applied inference",
-    detail: "Password-guessing evaluation, intrusion detection, and time-to-impact prediction.",
+    fact: "Sequence models",
+    detail: "LSTM autoencoders, password-guessing evaluation, intrusion detection.",
   },
   {
     label: "Research",
-    fact: `${research.length} research entries`,
-    detail: "Trusted execution environments, metering integrity, memory-hard password security.",
+    fact: `${research.length} entries`,
+    detail: "Trusted execution, metering integrity, memory-hard password security.",
   },
 ];
 
 export function AboutSection() {
   return (
-    <section id="about" className="border-b border-border py-20 sm:py-28">
+    <section id="about" className="border-b border-border py-24 sm:py-32">
       <Container>
         <SectionHeader index="09" label="ABOUT" title="About" />
 
@@ -40,40 +41,31 @@ export function AboutSection() {
           </p>
         </Reveal>
 
-        <div className="relative mt-14 grid gap-8 border-t border-border pt-10 sm:grid-cols-2 lg:grid-cols-4">
-          <div
-            className="absolute top-0 right-0 left-0 hidden h-px lg:block"
-            aria-hidden="true"
-          >
-            <svg viewBox="0 0 100 1" preserveAspectRatio="none" className="h-px w-full">
-              <line
-                x1="0"
-                y1="0.5"
-                x2="100"
-                y2="0.5"
-                stroke="var(--border-strong)"
-                strokeWidth="1"
-                className="signal-connection"
-                vectorEffect="non-scaling-stroke"
-              />
-            </svg>
-          </div>
-
+        <div className="mt-16 flex flex-wrap items-baseline gap-x-8 gap-y-10 sm:gap-x-12">
           {IDENTITY.map((block, i) => (
-            <Reveal key={block.label} delay={i * 0.06}>
-              <div className="flex flex-col gap-2">
-                <span className="flex items-center gap-2 font-mono text-xs tracking-[0.14em] text-muted-2">
-                  <span className="node-pulse size-1.5 rounded-full bg-accent" aria-hidden="true" />
-                  {block.label.toUpperCase()}
-                </span>
-                <span className="text-base font-medium text-foreground">
+            <Reveal key={block.label} delay={i * 0.07}>
+              <div
+                className={cn(
+                  "relative",
+                  i % 2 === 1 ? "sm:translate-y-6" : "sm:-translate-y-2",
+                )}
+              >
+                <span className="absolute -top-5 left-0 font-mono text-[10px] tracking-[0.1em] text-accent">
                   {block.fact}
                 </span>
-                <p className="text-sm leading-relaxed text-muted">
-                  {block.detail}
-                </p>
+                <span className="font-display block text-[clamp(1.75rem,5.5vw,3.5rem)] leading-none font-semibold tracking-tight text-foreground uppercase">
+                  {block.label}
+                </span>
               </div>
             </Reveal>
+          ))}
+        </div>
+
+        <div className="mt-14 flex flex-wrap gap-x-10 gap-y-2 border-t border-border pt-8 font-mono text-xs text-muted">
+          {IDENTITY.map((block) => (
+            <span key={block.label} className="max-w-[16rem]">
+              {block.detail}
+            </span>
           ))}
         </div>
       </Container>

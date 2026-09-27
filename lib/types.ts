@@ -40,6 +40,9 @@ export interface ResearchProject {
   slug: string;
   title: string;
   subtitle?: string;
+  /** Presentational hint only — never a fact. Controls which layout the
+   * Research section uses for this entry (default "standard"). */
+  layout?: "feature" | "compact" | "standard";
   status: string;
   venue: string;
   publisher?: string;
@@ -114,6 +117,8 @@ export interface Achievement {
 export interface Finding {
   id: string;
   title: string;
+  /** Two-line terse label for the large fragment display, e.g. ["API", "RACE CONDITION"]. */
+  fragment: [string, string];
   description: string;
   /** Where this was found/documented — never invented, always traceable to real source material. */
   source: string;

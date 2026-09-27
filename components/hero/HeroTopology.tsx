@@ -7,12 +7,14 @@ interface Node {
   x: number;
   y: number;
   verified: boolean;
+  delay: number;
 }
 
 interface Edge {
   a: number;
   b: number;
   signal: boolean;
+  delay: number;
 }
 
 const VIEW_W = 1000;
@@ -20,14 +22,14 @@ const VIEW_H = 640;
 
 // Nodes are seeded into three zones — left wing, right wing, lower band —
 // so the topology flanks the headline instead of sitting flatly behind it.
-// The central-upper band (roughly where "Hardik Ahlawat" renders) stays
-// sparse by construction.
+// The central-upper band (roughly where the name renders) stays sparse by
+// construction.
 function generateNodes(count: number): Node[] {
   const nodes: Node[] = [];
   const zones = [
-    { x: [30, 260], y: [40, 560] }, // left wing
-    { x: [740, 970], y: [40, 560] }, // right wing
-    { x: [280, 720], y: [430, 600] }, // lower band, under the headline
+    { x: [20, 300], y: [30, 610] }, // left wing
+    { x: [700, 980], y: [30, 610] }, // right wing
+    { x: [260, 740], y: [470, 615] }, // lower band, under the headline
   ];
   for (let i = 0; i < count; i++) {
     const zone = zones[i % zones.length];
@@ -36,13 +38,14 @@ function generateNodes(count: number): Node[] {
       x: zone.x[0] + Math.random() * (zone.x[1] - zone.x[0]),
       y: zone.y[0] + Math.random() * (zone.y[1] - zone.y[0]),
       verified: Math.random() > 0.8,
+      delay: Math.random() * 0.9,
     });
   }
   return nodes;
 }
 
 function buildEdges(nodes: Node[], maxDist: number, signalCount: number): Edge[] {
-  const edges: Edge[] = [];
+  const raw: { a: number; b: number }[] = [];
   for (let i = 0; i < nodes.length; i++) {
     const nearest: { j: number; d: number }[] = [];
     for (let j = 0; j < nodes.length; j++) {
@@ -54,11 +57,12 @@ function buildEdges(nodes: Node[], maxDist: number, signalCount: number): Edge[]
     }
     nearest.sort((a, b) => a.d - b.d);
     for (const { j } of nearest.slice(0, 2)) {
-      if (!edges.some((e) => (e.a === i && e.b === j) || (e.a === j && e.b === i))) {
-        edges.push({ a: i, b: j, signal: false });
+      if (!raw.some((e) => (e.a === i && e.b === j) || (e.a === j && e.b === i))) {
+        raw.push({ a: i, b: j });
       }
     }
   }
+  const edges: Edge[] = raw.map((e) => ({ ...e, signal: false, delay: Math.random() * 1.1 + 0.3 }));
   const shuffled = [...edges].sort(() => Math.random() - 0.5);
   for (let i = 0; i < Math.min(signalCount, shuffled.length); i++) {
     shuffled[i].signal = true;
@@ -67,35 +71,36 @@ function buildEdges(nodes: Node[], maxDist: number, signalCount: number): Edge[]
 }
 
 /**
- * The hero's living network topology — SVG, not Canvas, specifically so it
- * can participate in the composition (nodes flank the headline) rather than
- * sit as a flat decorative layer. Pointer proximity brightens nearby nodes
- * via direct DOM writes (no React re-renders on pointermove). Generated
- * once client-side (random layout, so this never runs during SSR) and
- * fully static — no listeners, no rAF loop — under prefers-reduced-motion.
+ * The hero's living network topology — SVG, not Canvas, so it can
+ * participate in the composition (nodes flank the headline) rather than
+ * sit as a flat decorative layer. On mount, nodes/edges materialize with a
+ * staggered formation animation and a single expanding "sweep" ring, then
+ * settle into ambient signal-flow + pointer-proximity brightening. Fully
+ * static (no formation, no listeners) under prefers-reduced-motion.
  */
 export function HeroTopology() {
   const svgRef = useRef<SVGSVGElement>(null);
   const [graph, setGraph] = useState<{ nodes: Node[]; edges: Edge[] } | null>(
     null,
   );
+  const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
     const svg = svgRef.current;
-    // The SVG itself is pointer-events-none (it must not intercept clicks
-    // meant for hero content above it), so the listener lives on its
-    // parent — the hero <section> — instead.
     const listenTarget = svg?.parentElement;
     if (!svg || !listenTarget) return;
 
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    setReduceMotion(reduced);
+
     const isMobile = window.innerWidth < 640;
-    const nodes = generateNodes(isMobile ? 11 : 22);
-    const edges = buildEdges(nodes, isMobile ? 160 : 130, isMobile ? 2 : 5);
+    const nodes = generateNodes(isMobile ? 12 : 26);
+    const edges = buildEdges(nodes, isMobile ? 170 : 150, isMobile ? 2 : 6);
     setGraph({ nodes, edges });
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      return;
-    }
+    if (reduced) return;
 
     let raf = 0;
     let pending = false;
@@ -113,11 +118,11 @@ export function HeroTopology() {
           const dx = node.x - px;
           const dy = node.y - py;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          const proximity = Math.max(0, 1 - dist / 220);
+          const proximity = Math.max(0, 1 - dist / 240);
           const el = svg!.querySelector<SVGCircleElement>(
             `[data-node="${node.id}"]`,
           );
-          if (el) el.style.opacity = String(0.45 + proximity * 0.55);
+          if (el) el.style.opacity = String(0.5 + proximity * 0.5);
         }
       });
     }
@@ -135,8 +140,22 @@ export function HeroTopology() {
       viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
       preserveAspectRatio="xMidYMid slice"
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 -z-10 h-full w-full opacity-80"
+      className="pointer-events-none absolute inset-0 -z-10 h-full w-full"
     >
+      {!reduceMotion && graph ? (
+        <circle
+          cx={VIEW_W / 2}
+          cy={VIEW_H / 2}
+          r="4"
+          fill="none"
+          stroke="var(--accent)"
+          strokeWidth="1"
+          style={{
+            animation: "sweep-ring 1.6s cubic-bezier(0.16,1,0.3,1) both",
+          }}
+        />
+      ) : null}
+
       {graph?.edges.map((edge, i) => {
         const a = graph.nodes[edge.a];
         const b = graph.nodes[edge.b];
@@ -151,9 +170,18 @@ export function HeroTopology() {
             stroke={
               a.verified || b.verified ? "var(--verified)" : "var(--accent)"
             }
-            strokeOpacity={0.16}
+            strokeOpacity={0.22}
             strokeWidth={1}
+            pathLength={reduceMotion ? undefined : 1}
             className={edge.signal ? "signal-connection" : undefined}
+            style={
+              reduceMotion
+                ? undefined
+                : {
+                    strokeDasharray: 1,
+                    animation: `draw-in 0.8s cubic-bezier(0.16,1,0.3,1) ${edge.delay}s both`,
+                  }
+            }
           />
         );
       })}
@@ -163,10 +191,17 @@ export function HeroTopology() {
           data-node={node.id}
           cx={node.x}
           cy={node.y}
-          r={node.verified ? 3.2 : 2.4}
+          r={node.verified ? 3.6 : 2.6}
           fill={node.verified ? "var(--verified)" : "var(--accent)"}
-          opacity={0.55}
+          opacity={reduceMotion ? 0.6 : 0}
           className={node.verified ? "node-pulse" : undefined}
+          style={
+            reduceMotion
+              ? undefined
+              : {
+                  animation: `node-form 0.6s cubic-bezier(0.16,1,0.3,1) ${node.delay}s forwards`,
+                }
+          }
         />
       ))}
     </svg>

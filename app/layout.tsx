@@ -83,6 +83,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-background text-foreground">
+        <div className="grain" aria-hidden="true" />
         <script
           type="application/ld+json"
            
