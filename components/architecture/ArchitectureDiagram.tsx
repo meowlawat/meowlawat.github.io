@@ -1,9 +1,12 @@
-"use client";
-
-import { motion, useReducedMotion } from "motion/react";
 import type { Architecture } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+/**
+ * Server component — pure CSS animation (see `diagram-pulse` in
+ * globals.css), so this ships zero client JS. The global
+ * prefers-reduced-motion rule already collapses the animation duration to
+ * near-zero, so reduced motion is handled without any JS branching here.
+ */
 export function ArchitectureDiagram({
   architecture,
   className,
@@ -11,7 +14,6 @@ export function ArchitectureDiagram({
   architecture: Architecture;
   className?: string;
 }) {
-  const reduceMotion = useReducedMotion();
   const { nodes } = architecture;
 
   return (
@@ -44,19 +46,13 @@ export function ArchitectureDiagram({
               className="relative my-1.5 h-6 w-px self-center bg-border-strong sm:my-0 sm:h-px sm:w-8"
               aria-hidden="true"
             >
-              {!reduceMotion ? (
-                <motion.span
-                  className="absolute top-1/2 left-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent"
-                  animate={{ opacity: [0, 1, 0], scale: [0.6, 1, 0.6] }}
-                  transition={{
-                    duration: 1.6,
-                    delay: i * 0.35,
-                    repeat: Infinity,
-                    repeatDelay: nodes.length * 0.35,
-                    ease: "easeInOut",
-                  }}
-                />
-              ) : null}
+              <span
+                className="absolute top-1/2 left-1/2 size-1.5 rounded-full bg-accent motion-reduce:hidden"
+                style={{
+                  animation: "diagram-pulse 2.2s ease-in-out infinite",
+                  animationDelay: `${i * 0.35}s`,
+                }}
+              />
             </div>
           ) : null}
         </div>

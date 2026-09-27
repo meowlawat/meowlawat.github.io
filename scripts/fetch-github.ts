@@ -1,10 +1,12 @@
 /**
  * Build-time GitHub snapshot generator.
  *
- * Queries the GitHub REST API for the curated list of repositories below and
- * writes a typed, generated data file consumed by the site. The visitor's
- * browser never talks to GitHub — this only runs at build time (or on demand
- * via `npm run fetch:github`).
+ * Retrieval/transformation logic only — the curated allowlist, category
+ * labels, and description overrides live in data/github-curation.ts
+ * (manually maintained). This script fetches the live repo list, applies
+ * that curation config, and writes the typed, generated data file consumed
+ * by the site. The visitor's browser never talks to GitHub — this only
+ * runs at build time (or on demand via `npm run fetch:github`).
  *
  * Failure behavior: if the GitHub API is unreachable or rate-limited, the
  * previously committed snapshot in data/generated/github.ts is left
@@ -13,25 +15,10 @@
  */
 import { writeFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { githubCuration } from "../data/github-curation";
 
 const GITHUB_USER = "meowlawat";
 const OUTPUT_PATH = resolve(process.cwd(), "data/generated/github.ts");
-
-// Curated allowlist — repos already featured as full case studies
-// (mpls-copilot, Deep-NIDS) are intentionally excluded here to avoid
-// duplicating them in the "More on GitHub" section.
-const CURATED_REPOS = [
-  "AetherGraph",
-  "Deep-Learning-for-Targeted-Threat-Mitigation",
-  "AuthPrint",
-] as const;
-
-// Manual description overrides for repos whose GitHub description is thin
-// or empty, sourced from the repository's own README — never invented.
-const DESCRIPTION_OVERRIDES: Record<string, string> = {
-  AuthPrint:
-    "Identity-based moderation engine: flags AI-generated submissions by fingerprinting a creator's stylometric writing habits (character n-gram TF-IDF, stylistic drift) instead of analyzing text content.",
-};
 
 interface RawRepo {
   name: string;
@@ -42,12 +29,12 @@ interface RawRepo {
   forks_count: number;
   updated_at: string;
   topics?: string[];
-  fork: boolean;
 }
 
 interface GeneratedRepo {
   name: string;
   description: string;
+  category: string;
   url: string;
   language: string | null;
   stars: number;
@@ -63,6 +50,7 @@ const FALLBACK_REPOS: GeneratedRepo[] = [
     name: "AetherGraph",
     description:
       "Confidence-aware security-evidence graph fusion: a forensic failure analysis and correction of cross-layer attack-path scoring.",
+    category: "Security Research",
     url: "https://github.com/meowlawat/AetherGraph",
     language: "Python",
     stars: 0,
@@ -74,6 +62,7 @@ const FALLBACK_REPOS: GeneratedRepo[] = [
     name: "Deep-Learning-for-Targeted-Threat-Mitigation",
     description:
       "An advanced cybersecurity project that detects spear-phishing emails using a hyperparameter-tuned LSTM classifier.",
+    category: "Machine Learning / Security",
     url: "https://github.com/meowlawat/Deep-Learning-for-Targeted-Threat-Mitigation",
     language: "Python",
     stars: 1,
@@ -83,7 +72,9 @@ const FALLBACK_REPOS: GeneratedRepo[] = [
   },
   {
     name: "AuthPrint",
-    description: DESCRIPTION_OVERRIDES.AuthPrint,
+    description:
+      "Identity-based moderation engine: flags AI-generated submissions by fingerprinting a creator's stylometric writing habits (character n-gram TF-IDF, stylistic drift) instead of analyzing text content.",
+    category: "Machine Learning / Security",
     url: "https://github.com/meowlawat/AuthPrint",
     language: "Python",
     stars: 1,
@@ -95,7 +86,8 @@ const FALLBACK_REPOS: GeneratedRepo[] = [
 
 function fileContents(repos: GeneratedRepo[], source: "live" | "fallback") {
   return `// GENERATED FILE — DO NOT EDIT MANUALLY
-// Produced by scripts/fetch-github.ts. Run \`npm run fetch:github\` to refresh.
+// Produced by scripts/fetch-github.ts from data/github-curation.ts.
+// Run \`npm run fetch:github\` to refresh.
 import type { GitHubSnapshot } from "@/lib/types";
 
 export const githubSnapshot = ${JSON.stringify(
@@ -118,12 +110,13 @@ async function fetchLive(): Promise<GeneratedRepo[]> {
   const byName = new Map(all.map((r) => [r.name, r]));
 
   const curated: GeneratedRepo[] = [];
-  for (const name of CURATED_REPOS) {
-    const r = byName.get(name);
+  for (const entry of [...githubCuration].sort((a, b) => a.order - b.order)) {
+    const r = byName.get(entry.name);
     if (!r) continue; // repo renamed/removed — drop silently, never invent
     curated.push({
       name: r.name,
-      description: DESCRIPTION_OVERRIDES[r.name] ?? r.description ?? "",
+      description: entry.descriptionOverride ?? r.description ?? "",
+      category: entry.category,
       url: r.html_url,
       language: r.language,
       stars: r.stargazers_count,

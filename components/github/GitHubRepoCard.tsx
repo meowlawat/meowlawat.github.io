@@ -23,6 +23,9 @@ export function GitHubRepoCard({
               {repo.name}
             </h3>
           </div>
+          <span className="mt-1 block text-[11px] tracking-wide text-muted-2 uppercase">
+            {repo.category}
+          </span>
           <p className="mt-2 text-sm leading-relaxed text-muted">
             {repo.description || "No description provided."}
           </p>

@@ -110,6 +110,7 @@ export interface Achievement {
 export interface GeneratedRepo {
   name: string;
   description: string;
+  category: string;
   url: string;
   language: string | null;
   stars: number;

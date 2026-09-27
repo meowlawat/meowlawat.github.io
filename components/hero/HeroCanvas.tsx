@@ -18,8 +18,9 @@ const GROUP_COLORS = [
 /**
  * Ambient, extremely low-contrast network graph. Purely decorative: a
  * handful of nodes drift slowly and draw faint connecting lines when close
- * together, with an occasional pulse traveling along a connection. Pauses
- * entirely under prefers-reduced-motion and when scrolled out of view.
+ * together. Pauses entirely under prefers-reduced-motion — in that case
+ * the effect never starts (no observers, no animation loop), and when
+ * scrolled out of view the loop keeps running but skips drawing/updates.
  */
 export function HeroCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -27,12 +28,13 @@ export function HeroCanvas() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return; // leave the canvas blank; nothing to animate or clean up
+    }
+
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
-    const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
 
     let width = 0;
     let height = 0;
@@ -61,7 +63,7 @@ export function HeroCanvas() {
 
     function step() {
       raf = requestAnimationFrame(step);
-      if (!visible || reduceMotion) return;
+      if (!visible) return;
       ctx!.clearRect(0, 0, width, height);
 
       for (const n of nodes) {
