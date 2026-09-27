@@ -10,24 +10,25 @@ import { cn } from "@/lib/utils";
 
 export function ProjectFeature({
   project,
-  reversed = false,
+  flagship = false,
 }: {
   project: Project;
-  reversed?: boolean;
+  flagship?: boolean;
 }) {
   return (
     <Reveal>
-      <article className="grid gap-8 border-b border-border py-14 first:pt-0 last:border-b-0 lg:grid-cols-2 lg:gap-12">
-        <div
-          className={cn(
-            "flex flex-col justify-center gap-5",
-            reversed && "lg:order-2",
-          )}
-        >
+      <article className="border-b border-border py-14 first:pt-0 last:border-b-0">
+        <div className="flex flex-col gap-5 lg:max-w-2xl">
           <span className="font-mono text-xs tracking-[0.14em] text-muted-2">
+            {flagship ? "FLAGSHIP PROJECT · " : ""}
             {project.category}
           </span>
-          <h3 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+          <h3
+            className={cn(
+              "font-semibold tracking-tight text-foreground",
+              flagship ? "text-3xl sm:text-4xl" : "text-2xl sm:text-3xl",
+            )}
+          >
             {project.title}
           </h3>
           <p className="text-sm font-medium text-muted sm:text-base">
@@ -57,19 +58,11 @@ export function ProjectFeature({
           </div>
         </div>
 
-        <div
-          className={cn(
-            "flex items-center",
-            reversed && "lg:order-1",
-          )}
-        >
-          {project.architecture ? (
-            <ArchitectureDiagram
-              architecture={project.architecture}
-              className="w-full"
-            />
-          ) : null}
-        </div>
+        {project.architecture ? (
+          <div className="mt-10">
+            <ArchitectureDiagram architecture={project.architecture} />
+          </div>
+        ) : null}
       </article>
     </Reveal>
   );

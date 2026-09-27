@@ -20,7 +20,7 @@ export function ProjectsSection() {
             <ProjectFeature
               key={project.slug}
               project={project}
-              reversed={i % 2 === 1}
+              flagship={i === 0}
             />
           ))}
         </div>

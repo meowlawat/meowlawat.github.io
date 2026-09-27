@@ -30,7 +30,7 @@ export function ArchitectureDiagram({
           key={node.id}
           className="flex flex-col items-stretch sm:flex-row sm:items-center"
         >
-          <div className="flex min-w-[9.5rem] flex-1 flex-col items-center gap-1 rounded-md border border-border-strong bg-surface px-4 py-3 text-center">
+          <div className="flex min-w-[7.5rem] flex-1 flex-col items-center gap-1 rounded-md border border-border-strong bg-surface px-3 py-3 text-center">
             <span className="font-mono text-[10px] tracking-[0.14em] text-muted-2">
               {String(i + 1).padStart(2, "0")}
             </span>
@@ -43,7 +43,7 @@ export function ArchitectureDiagram({
           </div>
           {i < nodes.length - 1 ? (
             <div
-              className="relative my-1.5 h-6 w-px self-center bg-border-strong sm:my-0 sm:h-px sm:w-8"
+              className="relative my-1.5 h-6 w-px self-center bg-border-strong sm:my-0 sm:h-px sm:w-6"
               aria-hidden="true"
             >
               <span

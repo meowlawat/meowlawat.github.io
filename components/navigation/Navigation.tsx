@@ -15,9 +15,25 @@ const LINKS = [
   { href: "#contact", label: "Contact" },
 ];
 
+// Sections without their own nav link (github, education, skills,
+// achievements) count toward the nearest preceding link so the nav still
+// reflects roughly where the visitor is.
+const SECTION_TO_LINK: Record<string, string> = {
+  research: "#research",
+  projects: "#projects",
+  github: "#projects",
+  experience: "#experience",
+  education: "#experience",
+  skills: "#experience",
+  achievements: "#experience",
+  about: "#about",
+  contact: "#contact",
+};
+
 export function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [activeHref, setActiveHref] = useState<string | null>(null);
 
   useEffect(() => {
     function onScroll() {
@@ -26,6 +42,28 @@ export function Navigation() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const sections = Object.keys(SECTION_TO_LINK)
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
+
+    if (sections.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveHref(SECTION_TO_LINK[entry.target.id]);
+          }
+        }
+      },
+      { rootMargin: "-40% 0px -55% 0px", threshold: 0 },
+    );
+
+    sections.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -61,7 +99,11 @@ export function Navigation() {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm text-muted transition-colors hover:text-foreground"
+              aria-current={activeHref === link.href ? "location" : undefined}
+              className={cn(
+                "text-sm transition-colors hover:text-foreground",
+                activeHref === link.href ? "text-foreground" : "text-muted",
+              )}
             >
               {link.label}
             </a>

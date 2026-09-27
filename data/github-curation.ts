@@ -27,6 +27,8 @@ export const githubCuration: CuratedRepo[] = [
     name: "Deep-Learning-for-Targeted-Threat-Mitigation",
     category: "Machine Learning / Security",
     order: 2,
+    descriptionOverride:
+      "Detects spear-phishing emails with a hyperparameter-tuned LSTM classifier (TensorFlow/Keras, KerasTuner), optimized for high recall on enterprise threat data.",
   },
   {
     name: "AuthPrint",

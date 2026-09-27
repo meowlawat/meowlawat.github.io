@@ -4,7 +4,7 @@
 import type { GitHubSnapshot } from "@/lib/types";
 
 export const githubSnapshot = {
-  "generatedAt": "2026-09-27T14:04:01.525Z",
+  "generatedAt": "2026-09-27T14:23:18.738Z",
   "source": "live",
   "repos": [
     {
@@ -20,7 +20,7 @@ export const githubSnapshot = {
     },
     {
       "name": "Deep-Learning-for-Targeted-Threat-Mitigation",
-      "description": "An advanced cybersecurity project that detects spear-phishing emails using a hyperparameter-optimized LSTM neural network. The model leverages sequential NLP analysis, TensorFlow/Keras, and automated tuning with KerasTuner to achieve high recall and minimize false negatives in enterprise threat detection.",
+      "description": "Detects spear-phishing emails with a hyperparameter-tuned LSTM classifier (TensorFlow/Keras, KerasTuner), optimized for high recall on enterprise threat data.",
       "category": "Machine Learning / Security",
       "url": "https://github.com/meowlawat/Deep-Learning-for-Targeted-Threat-Mitigation",
       "language": "Python",

@@ -51,7 +51,7 @@ export function HeroCanvas() {
       canvas!.height = height * dpr;
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      const count = width < 640 ? 14 : 24;
+      const count = width < 640 ? 14 : width < 1536 ? 24 : 32;
       nodes = Array.from({ length: count }, () => ({
         x: Math.random() * width,
         y: Math.random() * height,

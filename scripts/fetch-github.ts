@@ -61,7 +61,7 @@ const FALLBACK_REPOS: GeneratedRepo[] = [
   {
     name: "Deep-Learning-for-Targeted-Threat-Mitigation",
     description:
-      "An advanced cybersecurity project that detects spear-phishing emails using a hyperparameter-tuned LSTM classifier.",
+      "Detects spear-phishing emails with a hyperparameter-tuned LSTM classifier (TensorFlow/Keras, KerasTuner), optimized for high recall on enterprise threat data.",
     category: "Machine Learning / Security",
     url: "https://github.com/meowlawat/Deep-Learning-for-Targeted-Threat-Mitigation",
     language: "Python",

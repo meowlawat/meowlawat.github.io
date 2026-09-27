@@ -13,6 +13,5 @@ export const education: EducationItem[] = [
     degree: "B.Tech",
     field: "Computer Science Engineering — Cybersecurity",
     period: "2024 – 2028",
-    notes: ["Dual enrollment across two accredited institutions"],
   },
 ];

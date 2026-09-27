@@ -7,7 +7,12 @@ export function EducationSection() {
   return (
     <section id="education" className="border-b border-border py-20 sm:py-28">
       <Container>
-        <SectionHeader index="05" label="EDUCATION" title="Education" />
+        <SectionHeader
+          index="05"
+          label="EDUCATION"
+          title="Education"
+          description="Dual enrollment across two accredited institutions, pursued concurrently since 2024."
+        />
 
         <div className="grid gap-5 sm:grid-cols-2">
           {education.map((item, i) => (

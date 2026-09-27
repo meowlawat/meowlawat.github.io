@@ -90,7 +90,7 @@ export function Hero() {
 
           <motion.p
             variants={reduceMotion ? undefined : item}
-            className="max-w-xl text-balance leading-relaxed text-muted"
+            className="max-w-lg text-balance leading-relaxed text-muted"
           >
             {site.tagline}
           </motion.p>
