@@ -5,14 +5,14 @@ import { site } from "@/data/site";
 
 export function ContactSection() {
   return (
-    <section id="contact" className="py-24 sm:py-32">
+    <section id="contact" className="py-28 sm:py-36">
       <Container>
         <Reveal>
           <div className="flex flex-col items-start gap-6">
             <span className="font-mono text-xs tracking-[0.18em] text-muted-2">
               09 / CONTACT
             </span>
-            <h2 className="max-w-2xl text-3xl font-semibold text-balance tracking-tight text-foreground sm:text-5xl">
+            <h2 className="max-w-3xl text-[clamp(2rem,4vw+0.5rem,3.75rem)] leading-[1.02] font-semibold text-balance tracking-tight text-foreground">
               Let&rsquo;s build something difficult.
             </h2>
             <p className="max-w-xl text-balance text-muted">
@@ -44,6 +44,11 @@ export function ContactSection() {
             </div>
           </div>
         </Reveal>
+
+        <div className="mt-16 flex items-center justify-between border-t border-border pt-6 font-mono text-[11px] tracking-[0.1em] text-muted-2">
+          <span>{site.location}</span>
+          <span>09 / 09</span>
+        </div>
       </Container>
     </section>
   );

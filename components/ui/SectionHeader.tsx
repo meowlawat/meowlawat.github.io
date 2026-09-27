@@ -19,7 +19,7 @@ export function SectionHeader({
           <span className="h-px w-8 bg-border-strong" aria-hidden="true" />
           <span>{label}</span>
         </div>
-        <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+        <h2 className="text-[clamp(1.5rem,2vw+0.75rem,2.25rem)] font-semibold tracking-tight text-foreground">
           {title}
         </h2>
         {description ? (

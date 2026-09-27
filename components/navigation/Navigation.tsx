@@ -6,13 +6,14 @@ import { Menu, X, ArrowUpRight } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { site } from "@/data/site";
 import { cn } from "@/lib/utils";
+import { SPRING_SNAPPY, UI } from "@/lib/motion";
 
 const LINKS = [
-  { href: "#research", label: "Research" },
-  { href: "#projects", label: "Projects" },
-  { href: "#experience", label: "Experience" },
-  { href: "#about", label: "About" },
-  { href: "#contact", label: "Contact" },
+  { href: "#research", label: "Research", index: "01" },
+  { href: "#projects", label: "Projects", index: "02" },
+  { href: "#experience", label: "Experience", index: "04" },
+  { href: "#about", label: "About", index: "08" },
+  { href: "#contact", label: "Contact", index: "09" },
 ];
 
 // Sections without their own nav link (github, education, skills,
@@ -94,23 +95,33 @@ export function Navigation() {
           HARDIK
         </a>
 
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-1 md:flex">
           {LINKS.map((link) => (
             <a
               key={link.href}
               href={link.href}
               aria-current={activeHref === link.href ? "location" : undefined}
               className={cn(
-                "relative py-1 text-sm transition-colors duration-150 hover:text-foreground",
+                "group relative flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors duration-150 hover:text-foreground",
                 activeHref === link.href ? "text-foreground" : "text-muted",
               )}
             >
+              <span
+                className={cn(
+                  "font-mono text-[10px] transition-colors duration-150",
+                  activeHref === link.href
+                    ? "text-accent"
+                    : "text-muted-2 group-hover:text-accent",
+                )}
+              >
+                {link.index}
+              </span>
               {link.label}
               {activeHref === link.href ? (
                 <motion.span
                   layoutId="nav-active-indicator"
-                  className="absolute inset-x-0 -bottom-0.5 h-px bg-foreground"
-                  transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                  className="absolute inset-x-3 -bottom-0 h-px bg-foreground"
+                  transition={SPRING_SNAPPY}
                 />
               ) : null}
             </a>
@@ -119,7 +130,7 @@ export function Navigation() {
             href={site.github}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-foreground"
+            className="ml-3 inline-flex items-center gap-1 border-l border-border pl-4 text-sm text-muted transition-colors hover:text-foreground"
           >
             GitHub
             <ArrowUpRight className="size-3.5" aria-hidden="true" />
@@ -143,7 +154,7 @@ export function Navigation() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            transition={UI}
             className="overflow-hidden border-b border-border bg-background/95 backdrop-blur-md md:hidden"
           >
             <Container className="flex flex-col gap-1 py-3">
@@ -152,8 +163,11 @@ export function Navigation() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setOpen(false)}
-                  className="rounded-md px-2 py-2.5 text-base text-foreground/90 transition-colors hover:bg-surface"
+                  className="flex items-center gap-3 rounded-md px-2 py-2.5 text-base text-foreground/90 transition-colors hover:bg-surface"
                 >
+                  <span className="font-mono text-xs text-muted-2">
+                    {link.index}
+                  </span>
                   {link.label}
                 </a>
               ))}

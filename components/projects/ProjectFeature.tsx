@@ -59,8 +59,16 @@ export function ProjectFeature({
         </div>
 
         {project.architecture ? (
-          <div className="mt-10">
-            <ArchitectureDiagram architecture={project.architecture} />
+          <div className={cn("mt-10", flagship && "sm:mt-14")}>
+            {flagship ? (
+              <span className="mb-3 block font-mono text-[11px] tracking-[0.14em] text-muted-2">
+                SYSTEM TOPOLOGY
+              </span>
+            ) : null}
+            <ArchitectureDiagram
+              architecture={project.architecture}
+              className={flagship ? "sm:p-8" : undefined}
+            />
           </div>
         ) : null}
       </article>

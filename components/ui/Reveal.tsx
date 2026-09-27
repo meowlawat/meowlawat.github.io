@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { motion, useReducedMotion } from "motion/react";
+import { SECTION } from "@/lib/motion";
 
 export function Reveal({
   children,
@@ -25,7 +26,7 @@ export function Reveal({
       initial={reduceMotion ? undefined : { opacity: 0, y }}
       whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-10% 0px -10% 0px" }}
-      transition={{ duration: 0.5, delay, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ ...SECTION, delay }}
     >
       {children}
     </Component>

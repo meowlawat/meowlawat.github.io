@@ -13,7 +13,7 @@ export function ResearchSection() {
           title="Research"
           description="Research at the intersection of cybersecurity, machine learning, and trusted systems."
         />
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col">
           {research.map((paper, i) => (
             <ResearchCard key={paper.slug} research={paper} index={i} />
           ))}

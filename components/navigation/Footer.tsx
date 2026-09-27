@@ -8,7 +8,7 @@ export function Footer() {
         <div>
           <p className="text-sm font-medium text-foreground">{site.name}</p>
           <p className="font-mono text-xs text-muted-2">
-            Cybersecurity · Machine Learning · Systems
+            Research · Systems · Security · ML
           </p>
         </div>
 
