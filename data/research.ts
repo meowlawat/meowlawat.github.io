@@ -127,6 +127,19 @@ export const research: ResearchProject[] = [
       { label: "Attack match rate", value: "0.87%" },
       { label: "Credentials evaluated", value: "666,401" },
     ],
+    architecture: {
+      nodes: [
+        { id: "corpus", label: "Credential Corpus" },
+        { id: "lstm", label: "2-Layer Character LSTM" },
+        { id: "guessing", label: "Argon2id-Constrained Guessing" },
+        { id: "eval", label: "Match Rate Evaluation", state: "verified" },
+      ],
+      edges: [
+        { from: "corpus", to: "lstm" },
+        { from: "lstm", to: "guessing" },
+        { from: "guessing", to: "eval" },
+      ],
+    },
     details: {
       problem:
         "Memory-hard password hashing schemes like Argon2id are designed to make brute-force and dictionary attacks expensive. Whether a learned password-guessing model changes that calculus in practice is not obvious from the KDF parameters alone.",

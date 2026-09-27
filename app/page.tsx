@@ -9,21 +9,42 @@ import { SkillsSection } from "@/components/skills/SkillsSection";
 import { AchievementsSection } from "@/components/achievements/AchievementsSection";
 import { AboutSection } from "@/components/about/AboutSection";
 import { ContactSection } from "@/components/contact/ContactSection";
+import { ScrollFade } from "@/components/ui/ScrollFade";
 
 export default function Home() {
   return (
     <>
       <Hero />
-      <ResearchSection />
-      <ProjectsSection />
-      <SecurityFindingsSection />
-      <GitHubSection />
-      <ExperienceSection />
-      <EducationSection />
-      <SkillsSection />
-      <AchievementsSection />
-      <AboutSection />
-      <ContactSection />
+      <ScrollFade>
+        <ResearchSection />
+      </ScrollFade>
+      <ScrollFade>
+        <ProjectsSection />
+      </ScrollFade>
+      <ScrollFade>
+        <SecurityFindingsSection />
+      </ScrollFade>
+      <ScrollFade>
+        <GitHubSection />
+      </ScrollFade>
+      <ScrollFade>
+        <ExperienceSection />
+      </ScrollFade>
+      <ScrollFade>
+        <EducationSection />
+      </ScrollFade>
+      <ScrollFade>
+        <SkillsSection />
+      </ScrollFade>
+      <ScrollFade>
+        <AchievementsSection />
+      </ScrollFade>
+      <ScrollFade>
+        <AboutSection />
+      </ScrollFade>
+      <ScrollFade exitFade={false}>
+        <ContactSection />
+      </ScrollFade>
     </>
   );
 }

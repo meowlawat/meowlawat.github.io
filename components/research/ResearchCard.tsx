@@ -4,6 +4,7 @@ import type { ResearchProject } from "@/lib/types";
 import { MetricGrid } from "@/components/ui/Metric";
 import { TagRow } from "@/components/ui/Tag";
 import { Reveal } from "@/components/ui/Reveal";
+import { NetworkDiagram } from "@/components/architecture/NetworkDiagram";
 
 export function ResearchCard({
   research,
@@ -52,6 +53,15 @@ export function ResearchCard({
           <div className="mt-6">
             <MetricGrid metrics={research.metrics} />
           </div>
+
+          {research.architecture ? (
+            <div className="mt-6">
+              <NetworkDiagram
+                architecture={research.architecture}
+                footnoteLeft={research.technologies.join(" · ").toUpperCase()}
+              />
+            </div>
+          ) : null}
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
             <TagRow items={research.technologies} />
