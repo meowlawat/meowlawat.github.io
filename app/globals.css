@@ -4,32 +4,33 @@
   --background: #08090b;
   --surface: #101114;
   --surface-hover: #17181c;
-  --border: rgba(238, 234, 225, 0.08);
-  --border-strong: rgba(238, 234, 225, 0.15);
-  --foreground: #eeeae1;
-  --muted: #9c9a92;
-  --muted-2: #86847d;
-  /* Signal Lab color semantics — muted/pigment-like, not neon. Each
-     accent means one thing, everywhere: cobalt = signal/information,
-     sage = verified/live (rare), rust = security finding (exclusive). */
-  --accent: #7187b3;
-  --accent-foreground: #dde4f0;
-  --accent-soft: rgba(113, 135, 179, 0.14);
-  --accent-border: rgba(113, 135, 179, 0.4);
-
-  --secondary: #668b88;
-  --secondary-soft: rgba(102, 139, 136, 0.14);
-  --secondary-border: rgba(102, 139, 136, 0.4);
+  --border: rgba(125, 156, 183, 0.1);
+  --border-strong: rgba(125, 156, 183, 0.22);
+  --foreground: #eeeeee;
+  --muted: #8ca4ac;
+  --muted-2: #7d9cb7;
+  /* Two user-supplied palettes: a blue family (primary signal/accent) and
+     a red family (security-exclusive). #217eaa/#df0606 are the palettes'
+     own saturated hues; --accent/--alert are lightened just enough
+     (verified below) to clear 4.5:1 against the background for small
+     text, since the raw hexes sat at 4.39:1 / 3.95:1. */
+  --accent: #378bb3;
+  --accent-foreground: #dbeaf1;
+  --accent-soft: rgba(55, 139, 179, 0.14);
+  --accent-border: rgba(55, 139, 179, 0.4);
 
   --verified: #9eaa7b;
   --verified-foreground: #eef1e3;
   --verified-soft: rgba(158, 170, 123, 0.14);
   --verified-border: rgba(158, 170, 123, 0.4);
 
-  --alert: #b47767;
-  --alert-foreground: #f4e5df;
-  --alert-soft: rgba(180, 119, 103, 0.14);
-  --alert-border: rgba(180, 119, 103, 0.4);
+  --alert: #e53838;
+  --alert-foreground: #fadbdb;
+  /* Solid, not translucent — the red palette's own near-black/dark-red
+     give the Security Findings section a genuinely different atmosphere
+     rather than a tinted overlay on the site's usual near-black. */
+  --alert-soft: #160404;
+  --alert-border: #7a0809;
 }
 
 @theme inline {
@@ -45,9 +46,6 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-soft: var(--accent-soft);
   --color-accent-border: var(--accent-border);
-  --color-secondary: var(--secondary);
-  --color-secondary-soft: var(--secondary-soft);
-  --color-secondary-border: var(--secondary-border);
   --color-verified: var(--verified);
   --color-verified-foreground: var(--verified-foreground);
   --color-verified-soft: var(--verified-soft);
