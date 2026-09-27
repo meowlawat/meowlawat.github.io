@@ -101,11 +101,18 @@ export function Navigation() {
               href={link.href}
               aria-current={activeHref === link.href ? "location" : undefined}
               className={cn(
-                "text-sm transition-colors hover:text-foreground",
+                "relative py-1 text-sm transition-colors duration-150 hover:text-foreground",
                 activeHref === link.href ? "text-foreground" : "text-muted",
               )}
             >
               {link.label}
+              {activeHref === link.href ? (
+                <motion.span
+                  layoutId="nav-active-indicator"
+                  className="absolute inset-x-0 -bottom-0.5 h-px bg-foreground"
+                  transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                />
+              ) : null}
             </a>
           ))}
           <a

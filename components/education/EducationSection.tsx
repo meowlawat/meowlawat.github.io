@@ -17,7 +17,7 @@ export function EducationSection() {
         <div className="grid gap-5 sm:grid-cols-2">
           {education.map((item, i) => (
             <Reveal key={item.institution} delay={i * 0.06}>
-              <div className="flex h-full flex-col gap-3 rounded-xl border border-border bg-surface/40 p-6">
+              <div className="flex h-full flex-col gap-3 rounded-xl border border-border bg-surface/40 p-6 transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-border-strong motion-reduce:hover:translate-y-0">
                 <div>
                   <h3 className="text-lg font-semibold text-foreground">
                     {item.institution}

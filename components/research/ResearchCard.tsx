@@ -16,7 +16,7 @@ export function ResearchCard({
     <Reveal delay={index * 0.06}>
       <Link
         href={`/research/${research.slug}`}
-        className="group block rounded-xl border border-border bg-surface/40 p-6 transition-colors duration-200 hover:border-border-strong hover:bg-surface sm:p-8"
+        className="group block rounded-xl border border-border bg-surface/40 p-6 transition-[border-color,background-color,transform] duration-200 hover:-translate-y-0.5 hover:border-border-strong hover:bg-surface motion-reduce:hover:translate-y-0 sm:p-8"
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-accent-border bg-accent-soft px-2.5 py-1 font-mono text-[11px] text-accent-foreground">

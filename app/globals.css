@@ -54,6 +54,25 @@ body {
   border-radius: 2px;
 }
 
+/* Progressive-enhancement scroll progress bar (detail pages only). No-op —
+   stays invisible at scale-x-0 — in browsers without scroll-timeline
+   support, so it never needs a JS fallback. */
+@supports (animation-timeline: scroll()) {
+  .scroll-progress {
+    animation: scroll-progress-fill linear both;
+    animation-timeline: scroll(root);
+  }
+}
+
+@keyframes scroll-progress-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
 @keyframes diagram-pulse {
   0%,
   100% {
@@ -74,5 +93,9 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .scroll-progress {
+    animation: none !important;
   }
 }

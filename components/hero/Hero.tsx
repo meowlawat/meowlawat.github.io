@@ -76,7 +76,7 @@ export function Hero() {
 
           <motion.h1
             variants={reduceMotion ? undefined : item}
-            className="text-4xl leading-[1.05] font-semibold tracking-tight text-foreground sm:text-6xl"
+            className="text-[clamp(2.25rem,4vw+1rem,4.5rem)] leading-[1.05] font-semibold tracking-tight text-foreground"
           >
             {site.name}
           </motion.h1>

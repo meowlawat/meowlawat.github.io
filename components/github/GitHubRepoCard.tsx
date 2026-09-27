@@ -15,11 +15,11 @@ export function GitHubRepoCard({
         href={repo.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="group flex h-full flex-col justify-between gap-4 rounded-xl border border-border bg-surface/40 p-6 transition-colors duration-200 hover:border-border-strong hover:bg-surface"
+        className="group flex h-full flex-col justify-between gap-4 rounded-xl border border-border bg-surface/40 p-6 transition-[border-color,background-color,transform] duration-200 hover:-translate-y-0.5 hover:border-border-strong hover:bg-surface motion-reduce:hover:translate-y-0"
       >
         <div>
           <div className="flex items-center justify-between gap-2">
-            <h3 className="font-mono text-sm font-medium text-foreground">
+            <h3 className="font-mono text-sm font-medium text-foreground transition-colors duration-150 group-hover:text-accent">
               {repo.name}
             </h3>
           </div>

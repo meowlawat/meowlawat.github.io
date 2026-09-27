@@ -52,6 +52,10 @@ export default async function ProjectDetailPage({
 
   return (
     <article className="py-16 sm:py-20">
+      <div
+        aria-hidden="true"
+        className="scroll-progress fixed inset-x-0 top-0 z-[60] h-0.5 origin-left scale-x-0 bg-accent"
+      />
       <Container className="max-w-3xl">
         <script
           type="application/ld+json"

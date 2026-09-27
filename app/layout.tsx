@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { MotionConfig } from "motion/react";
 import { Navigation } from "@/components/navigation/Navigation";
 import { Footer } from "@/components/navigation/Footer";
 import { site } from "@/data/site";
@@ -81,9 +82,11 @@ export default function RootLayout({
            
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
         />
-        <Navigation />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <MotionConfig reducedMotion="user">
+          <Navigation />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </MotionConfig>
       </body>
     </html>
   );
