@@ -1,4 +1,4 @@
-import { SectionHeader } from "@/components/ui/SectionHeader";
+import { SectionStatement } from "@/components/ui/SectionStatement";
 import { Container } from "@/components/ui/Container";
 import { ProjectFeature } from "@/components/projects/ProjectFeature";
 import { projects } from "@/data/projects";
@@ -9,11 +9,11 @@ export function ProjectsSection() {
   return (
     <section id="projects" className="border-b border-border py-20 sm:py-28">
       <Container>
-        <SectionHeader
-          index="02"
+        <SectionStatement
+          index="02 / SYSTEMS"
           label="FLAGSHIP PROJECT"
-          title="Systems"
-          description="An autonomous system built end-to-end: simulation, telemetry, prediction, and recovery — with zero outbound dependency."
+          lines={["One flagship", "system."]}
+          description="A single project gets the full treatment: topology, fault, prediction, recovery — built end-to-end with zero outbound dependency."
         />
         <div>
           {featured.map((project, i) => (

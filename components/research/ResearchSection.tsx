@@ -1,4 +1,4 @@
-import { SectionHeader } from "@/components/ui/SectionHeader";
+import { SectionStatement } from "@/components/ui/SectionStatement";
 import { Container } from "@/components/ui/Container";
 import { ResearchFeature } from "@/components/research/ResearchFeature";
 import { ResearchNote } from "@/components/research/ResearchNote";
@@ -9,11 +9,11 @@ export function ResearchSection() {
   return (
     <section id="research" className="border-b border-border py-20 sm:py-28">
       <Container>
-        <SectionHeader
-          index="01"
+        <SectionStatement
+          index="01 / RESEARCH"
           label="RESEARCH"
-          title="Research"
-          description="Research at the intersection of cybersecurity, machine learning, and trusted systems."
+          lines={["Research as", "an instrument."]}
+          description="Experiments become architecture, measurements become visual objects, and publications become a record of systems under pressure."
         />
         <div className="flex flex-col">
           {research.map((paper, i) => {

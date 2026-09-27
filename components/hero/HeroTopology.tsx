@@ -8,6 +8,7 @@ interface Node {
   y: number;
   verified: boolean;
   delay: number;
+  label?: string;
 }
 
 interface Edge {
@@ -17,28 +18,29 @@ interface Edge {
   delay: number;
 }
 
-const VIEW_W = 1000;
-const VIEW_H = 640;
+const VIEW_W = 600;
+const VIEW_H = 520;
 
-// Nodes are seeded into three zones — left wing, right wing, lower band —
-// so the topology flanks the headline instead of sitting flatly behind it.
-// The central-upper band (roughly where the name renders) stays sparse by
-// construction.
+const LABELS = ["VERIFIED", "SIGNAL_02", "NODE_07", "SIGNAL_04", "NODE_03"];
+
+// An orbital cluster rather than a scattered grid: nodes sit at varied
+// radii/angles around a loose center, so it reads as one instrument
+// rather than random dots.
 function generateNodes(count: number): Node[] {
   const nodes: Node[] = [];
-  const zones = [
-    { x: [20, 300], y: [30, 610] }, // left wing
-    { x: [700, 980], y: [30, 610] }, // right wing
-    { x: [260, 740], y: [470, 615] }, // lower band, under the headline
-  ];
+  const cx = VIEW_W * 0.55;
+  const cy = VIEW_H * 0.42;
   for (let i = 0; i < count; i++) {
-    const zone = zones[i % zones.length];
+    const angle = (i / count) * Math.PI * 2 + Math.random() * 0.6;
+    const radius = 60 + Math.random() * (VIEW_W * 0.42);
+    const verified = Math.random() > 0.82;
     nodes.push({
       id: i,
-      x: zone.x[0] + Math.random() * (zone.x[1] - zone.x[0]),
-      y: zone.y[0] + Math.random() * (zone.y[1] - zone.y[0]),
-      verified: Math.random() > 0.8,
+      x: cx + Math.cos(angle) * radius,
+      y: cy + Math.sin(angle) * radius * 0.85,
+      verified,
       delay: Math.random() * 0.9,
+      label: Math.random() > 0.62 ? LABELS[i % LABELS.length] : undefined,
     });
   }
   return nodes;
@@ -71,12 +73,13 @@ function buildEdges(nodes: Node[], maxDist: number, signalCount: number): Edge[]
 }
 
 /**
- * The hero's living network topology — SVG, not Canvas, so it can
- * participate in the composition (nodes flank the headline) rather than
- * sit as a flat decorative layer. On mount, nodes/edges materialize with a
- * staggered formation animation and a single expanding "sweep" ring, then
- * settle into ambient signal-flow + pointer-proximity brightening. Fully
- * static (no formation, no listeners) under prefers-reduced-motion.
+ * The hero's living network topology — an orbital instrumentation
+ * cluster, SVG rather than Canvas, sized to its own column (it's a
+ * compositional element, not a full-bleed background). Nodes materialize
+ * with a staggered formation animation and a single expanding "sweep"
+ * ring, then settle into ambient signal-flow + pointer-proximity
+ * brightening. Fully static (no formation, no listeners) under
+ * prefers-reduced-motion.
  */
 export function HeroTopology() {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -96,8 +99,8 @@ export function HeroTopology() {
     setReduceMotion(reduced);
 
     const isMobile = window.innerWidth < 640;
-    const nodes = generateNodes(isMobile ? 12 : 26);
-    const edges = buildEdges(nodes, isMobile ? 170 : 150, isMobile ? 2 : 6);
+    const nodes = generateNodes(isMobile ? 9 : 15);
+    const edges = buildEdges(nodes, isMobile ? 200 : 240, isMobile ? 2 : 4);
     setGraph({ nodes, edges });
 
     if (reduced) return;
@@ -118,7 +121,7 @@ export function HeroTopology() {
           const dx = node.x - px;
           const dy = node.y - py;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          const proximity = Math.max(0, 1 - dist / 240);
+          const proximity = Math.max(0, 1 - dist / 200);
           const el = svg!.querySelector<SVGCircleElement>(
             `[data-node="${node.id}"]`,
           );
@@ -138,21 +141,33 @@ export function HeroTopology() {
     <svg
       ref={svgRef}
       viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-      preserveAspectRatio="xMidYMid slice"
+      preserveAspectRatio="xMidYMid meet"
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 -z-10 h-full w-full"
+      className="pointer-events-none absolute inset-0 h-full w-full"
     >
+      {/* Faint orbital rings — atmosphere even when nothing is moving. */}
+      {[0.2, 0.32, 0.44].map((f) => (
+        <circle
+          key={f}
+          cx={VIEW_W * 0.55}
+          cy={VIEW_H * 0.42}
+          r={VIEW_W * f}
+          fill="none"
+          stroke="var(--border-strong)"
+          strokeWidth={1}
+          opacity={0.4}
+        />
+      ))}
+
       {!reduceMotion && graph ? (
         <circle
-          cx={VIEW_W / 2}
-          cy={VIEW_H / 2}
+          cx={VIEW_W * 0.55}
+          cy={VIEW_H * 0.42}
           r="4"
           fill="none"
           stroke="var(--accent)"
           strokeWidth="1"
-          style={{
-            animation: "sweep-ring 1.6s cubic-bezier(0.16,1,0.3,1) both",
-          }}
+          style={{ animation: "sweep-ring 1.6s cubic-bezier(0.16,1,0.3,1) both" }}
         />
       ) : null}
 
@@ -167,10 +182,8 @@ export function HeroTopology() {
             y1={a.y}
             x2={b.x}
             y2={b.y}
-            stroke={
-              a.verified || b.verified ? "var(--verified)" : "var(--accent)"
-            }
-            strokeOpacity={0.22}
+            stroke={a.verified || b.verified ? "var(--verified)" : "var(--accent)"}
+            strokeOpacity={0.28}
             strokeWidth={1}
             pathLength={reduceMotion ? undefined : 1}
             className={edge.signal ? "signal-connection" : undefined}
@@ -185,24 +198,41 @@ export function HeroTopology() {
           />
         );
       })}
+
       {graph?.nodes.map((node) => (
-        <circle
-          key={node.id}
-          data-node={node.id}
-          cx={node.x}
-          cy={node.y}
-          r={node.verified ? 3.6 : 2.6}
-          fill={node.verified ? "var(--verified)" : "var(--accent)"}
-          opacity={reduceMotion ? 0.6 : 0}
-          className={node.verified ? "node-pulse" : undefined}
-          style={
-            reduceMotion
-              ? undefined
-              : {
-                  animation: `node-form 0.6s cubic-bezier(0.16,1,0.3,1) ${node.delay}s forwards`,
-                }
-          }
-        />
+        <g key={node.id}>
+          <circle
+            data-node={node.id}
+            cx={node.x}
+            cy={node.y}
+            r={node.verified ? 5.5 : 3.5}
+            fill={node.verified ? "var(--verified)" : "var(--accent)"}
+            opacity={reduceMotion ? 0.65 : 0}
+            className={node.verified ? "node-pulse" : undefined}
+            style={
+              reduceMotion
+                ? undefined
+                : { animation: `node-form 0.6s cubic-bezier(0.16,1,0.3,1) ${node.delay}s forwards` }
+            }
+          />
+          {node.label ? (
+            <text
+              x={node.x + 10}
+              y={node.y - 8}
+              className="fill-muted-2 font-mono"
+              style={
+                reduceMotion
+                  ? { fontSize: 9, opacity: 0.8 }
+                  : {
+                      fontSize: 9,
+                      animation: `label-form 0.6s cubic-bezier(0.16,1,0.3,1) ${node.delay + 0.2}s forwards`,
+                    }
+              }
+            >
+              {node.label}
+            </text>
+          ) : null}
+        </g>
       ))}
     </svg>
   );

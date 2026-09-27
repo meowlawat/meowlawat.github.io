@@ -6,7 +6,6 @@ import { TagRow } from "@/components/ui/Tag";
 import { ExternalLink } from "@/components/ui/ExternalLink";
 import { Reveal } from "@/components/ui/Reveal";
 import { NetworkDiagram } from "@/components/architecture/NetworkDiagram";
-import { cn } from "@/lib/utils";
 
 export function ProjectFeature({
   project,
@@ -15,21 +14,32 @@ export function ProjectFeature({
   project: Project;
   flagship?: boolean;
 }) {
+  const titleWords = project.title.split(" ");
+
   return (
     <Reveal>
-      <article className="border-b border-border py-14 first:pt-0 last:border-b-0">
+      <article className="border-t border-border py-14 first:border-t-0">
         <div className="flex flex-col gap-5 lg:max-w-2xl">
           <span className="font-mono text-xs tracking-[0.14em] text-muted-2">
-            {flagship ? "FLAGSHIP PROJECT · " : ""}
-            {project.category}
+            {String(1).padStart(2, "0")} / {project.category}
           </span>
           <h3
-            className={cn(
-              "font-semibold tracking-tight text-foreground",
-              flagship ? "text-3xl sm:text-4xl" : "text-2xl sm:text-3xl",
-            )}
+            className={
+              flagship
+                ? "font-display text-[clamp(2.25rem,6vw,4.5rem)] leading-[0.95] font-bold tracking-tight text-foreground uppercase"
+                : "text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+            }
           >
-            {project.title}
+            {flagship
+              ? titleWords.map((w, i) => (
+                  <span
+                    key={i}
+                    className={i === 1 ? "block text-accent" : "block"}
+                  >
+                    {w}
+                  </span>
+                ))
+              : project.title}
           </h3>
           <p className="text-sm font-medium text-muted sm:text-base">
             {project.tagline}
@@ -47,7 +57,7 @@ export function ProjectFeature({
               href={`/projects/${project.slug}`}
               className="group inline-flex items-center gap-1 text-sm font-medium text-foreground"
             >
-              View case study
+              Explore system
               <ArrowUpRight className="size-3.5 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
             </Link>
             {project.links.repo ? (
@@ -59,15 +69,17 @@ export function ProjectFeature({
         </div>
 
         {project.architecture ? (
-          <div className={cn("mt-10", flagship && "sm:mt-14")}>
-            {flagship ? (
-              <span className="mb-3 block font-mono text-[11px] tracking-[0.14em] text-muted-2">
-                SYSTEM TOPOLOGY
-              </span>
-            ) : null}
+          <div className={flagship ? "mt-10 sm:mt-14" : "mt-10"}>
             <NetworkDiagram
               architecture={project.architecture}
-              className={flagship ? "sm:p-8" : undefined}
+              large={flagship}
+              eyebrow={
+                flagship
+                  ? "TOPOLOGY / TELEMETRY / FAULT / RECOVERY"
+                  : undefined
+              }
+              footnoteLeft={project.stack.slice(0, 3).join(" · ").toUpperCase()}
+              footnoteRight={flagship ? "BACKUP PATH ACTIVE" : undefined}
             />
           </div>
         ) : null}

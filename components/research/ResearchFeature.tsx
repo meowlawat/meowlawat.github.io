@@ -6,64 +6,70 @@ import { Reveal } from "@/components/ui/Reveal";
 import { NetworkDiagram } from "@/components/architecture/NetworkDiagram";
 
 /**
- * The one research entry given hero-like visual weight. Metrics read as
- * instrument annotations beneath the diagram (a top tick + big mono
- * number + label) rather than a boxed grid — the diagram is the subject,
- * the numbers are what it's reporting.
+ * The one research entry given hero-like visual weight: a giant year
+ * number, venue metadata as loose caption lines, and metrics as a
+ * divided instrument readout rather than a boxed grid.
  */
 export function ResearchFeature({ research }: { research: ResearchProject }) {
+  const titleParts = research.title.split(/(\(.*\))/).filter(Boolean);
+
   return (
     <Reveal>
       <Link
         href={`/research/${research.slug}`}
         className="group block border-t border-border py-14 first:border-t-0"
       >
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent-border bg-accent-soft px-2.5 py-1 font-mono text-[11px] text-accent-foreground">
-            <span className="size-1.5 rounded-full bg-accent" />
-            {research.status}
-          </span>
-          {research.publisher ? (
-            <span className="font-mono text-xs text-muted-2">
-              {research.publisher}
-            </span>
-          ) : null}
+        <span className="font-display block text-[clamp(3rem,9vw,5.5rem)] leading-none font-bold text-accent">
+          {research.year}
+        </span>
+
+        <div className="mt-4 flex flex-col gap-0.5 font-mono text-xs text-muted-2">
+          <span>{research.venue}</span>
+          {research.publisher ? <span>{research.publisher}</span> : null}
+          <span>{research.technologies.join(" / ")}</span>
         </div>
 
-        <h3 className="font-display mt-5 max-w-4xl text-[clamp(2rem,5vw,3.75rem)] leading-[0.98] font-semibold tracking-tight text-foreground transition-colors duration-200 group-hover:text-accent">
-          {research.title}
+        <h3 className="font-display mt-5 max-w-4xl text-[clamp(1.75rem,4.5vw,3.25rem)] leading-[1.02] font-bold tracking-tight text-foreground transition-colors duration-200 group-hover:text-accent">
+          {titleParts.map((part, i) =>
+            part.startsWith("(") ? (
+              <span key={i} className="text-accent">
+                {" "}
+                {part}
+              </span>
+            ) : (
+              <span key={i}>{part}</span>
+            ),
+          )}
         </h3>
-        {research.subtitle ? (
-          <p className="mt-2 max-w-2xl text-base text-muted sm:text-lg">
-            {research.subtitle}
-          </p>
-        ) : null}
 
-        <p className="mt-5 max-w-2xl text-sm leading-relaxed text-muted">
+        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted">
           {research.description}
         </p>
 
-        {research.architecture ? (
-          <div className="mt-10">
-            <NetworkDiagram architecture={research.architecture} className="sm:p-8" />
-          </div>
-        ) : null}
-
-        <div className="mt-8 flex flex-wrap gap-x-10 gap-y-5">
+        <div className="mt-10 grid grid-cols-2 divide-x divide-y divide-border border-t border-l border-border sm:grid-cols-4 sm:divide-y-0">
           {research.metrics.map((m) => (
-            <div key={m.label} className="flex flex-col gap-1 border-t border-accent-border pt-2">
-              <span className="font-mono text-2xl font-medium tabular-nums text-foreground sm:text-3xl">
+            <div key={m.label} className="flex flex-col gap-1 px-4 py-4 sm:px-6">
+              <span className="font-mono text-xl font-medium tabular-nums text-foreground sm:text-2xl">
                 {m.value}
               </span>
-              <span className="max-w-[10rem] text-xs leading-snug text-muted">
+              <span className="text-[11px] leading-snug text-muted uppercase">
                 {m.label}
-                {m.context ? (
-                  <span className="block text-muted-2">{m.context}</span>
-                ) : null}
               </span>
             </div>
           ))}
         </div>
+
+        {research.architecture ? (
+          <div className="mt-10">
+            <NetworkDiagram
+              architecture={research.architecture}
+              large
+              eyebrow="TRUSTED DATA PATH / 01"
+              footnoteLeft={research.technologies.join(" · ").toUpperCase()}
+              footnoteRight="VERIFIED"
+            />
+          </div>
+        ) : null}
 
         <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
           <TagRow items={research.technologies} />
