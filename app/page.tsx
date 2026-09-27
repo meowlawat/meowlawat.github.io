@@ -1,50 +1,36 @@
 import { Hero } from "@/components/hero/Hero";
-import { ResearchSection } from "@/components/research/ResearchSection";
-import { ProjectsSection } from "@/components/projects/ProjectsSection";
-import { SecurityFindingsSection } from "@/components/findings/SecurityFindingsSection";
-import { GitHubSection } from "@/components/github/GitHubSection";
-import { ExperienceSection } from "@/components/experience/ExperienceSection";
-import { EducationSection } from "@/components/education/EducationSection";
-import { SkillsSection } from "@/components/skills/SkillsSection";
-import { AchievementsSection } from "@/components/achievements/AchievementsSection";
-import { AboutSection } from "@/components/about/AboutSection";
-import { ContactSection } from "@/components/contact/ContactSection";
-import { ScrollFade } from "@/components/ui/ScrollFade";
+import { RDSScene } from "@/components/scenes/RDSScene";
+import { ResearchExperiments } from "@/components/scenes/ResearchExperiments";
+import { MPLSScene } from "@/components/scenes/MPLSScene";
+import { FindingsScene } from "@/components/scenes/FindingsScene";
+import { IdentityScene } from "@/components/scenes/IdentityScene";
+import { ExperienceScene } from "@/components/scenes/ExperienceScene";
+import { ContactScene } from "@/components/scenes/ContactScene";
+import { SignalThread } from "@/components/scenes/SignalThread";
+
+// Scene colors carry meaning: cobalt = signal, teal = system,
+// rust = security finding, sage = verified / resolved.
+const COBALT = "#7187b3";
+const TEAL = "#668b88";
+const RUST = "#b47767";
+const SAGE = "#9eaa7b";
 
 export default function Home() {
   return (
     <>
       <Hero />
-      <ScrollFade>
-        <ResearchSection />
-      </ScrollFade>
-      <ScrollFade>
-        <ProjectsSection />
-      </ScrollFade>
-      <ScrollFade>
-        <SecurityFindingsSection />
-      </ScrollFade>
-      <ScrollFade>
-        <GitHubSection />
-      </ScrollFade>
-      <ScrollFade>
-        <ExperienceSection />
-      </ScrollFade>
-      <ScrollFade>
-        <EducationSection />
-      </ScrollFade>
-      <ScrollFade>
-        <SkillsSection />
-      </ScrollFade>
-      <ScrollFade>
-        <AchievementsSection />
-      </ScrollFade>
-      <ScrollFade>
-        <AboutSection />
-      </ScrollFade>
-      <ScrollFade exitFade={false}>
-        <ContactSection />
-      </ScrollFade>
+      <SignalThread from={COBALT} to={COBALT} label="SIGNAL → RESEARCH" />
+      <RDSScene />
+      <ResearchExperiments />
+      <SignalThread from={COBALT} to={TEAL} label="SIGNAL → NETWORK" />
+      <MPLSScene />
+      <SignalThread from={TEAL} to={RUST} label="SIGNAL → FIELD NOTES" />
+      <FindingsScene />
+      <SignalThread from={RUST} to={COBALT} label="SIGNAL → IDENTITY" />
+      <IdentityScene />
+      <ExperienceScene />
+      <SignalThread from={TEAL} to={SAGE} label="SIGNAL → RESOLVING" />
+      <ContactScene />
     </>
   );
 }

@@ -91,7 +91,7 @@ export default function RootLayout({
         />
         <MotionConfig reducedMotion="user">
           <Navigation />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 overflow-x-clip">{children}</main>
           <Footer />
         </MotionConfig>
       </body>

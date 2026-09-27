@@ -1,151 +1,106 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useRef, type PointerEvent } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
-import { Container } from "@/components/ui/Container";
 import { site } from "@/data/site";
 import { research } from "@/data/research";
 import { projects } from "@/data/projects";
-import { DRAMATIC } from "@/lib/motion";
 
 const HeroTopology = dynamic(
   () => import("@/components/hero/HeroTopology").then((m) => m.HeroTopology),
   { ssr: false },
 );
 
-const container = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.09, delayChildren: 0.05 } },
+const rise = {
+  hidden: { opacity: 0, y: "18%" },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: "0%",
+    transition: { type: "spring" as const, stiffness: 70, damping: 18, delay: 0.15 + i * 0.12 },
+  }),
 };
 
-const item = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: DRAMATIC },
-};
-
-const EDITORIAL_LINKS = [
-  { href: "#research", label: "Explore research" },
-  { href: "#projects", label: "Explore systems" },
-];
-
+/**
+ * Not a document header — an environment. The name is a physical object
+ * spanning the viewport; the system field runs behind it and a few nodes
+ * and signals cross in front of it. Everything else is edge annotation.
+ */
 export function Hero() {
-  const reduceMotion = useReducedMotion();
-  const spotlightRef = useRef<HTMLDivElement>(null);
-
-  function handlePointerMove(e: PointerEvent<HTMLDivElement>) {
-    const el = spotlightRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    el.style.setProperty("--x", `${e.clientX - rect.left}px`);
-    el.style.setProperty("--y", `${e.clientY - rect.top}px`);
-  }
+  const reduce = useReducedMotion();
+  const anim = (i: number) =>
+    reduce ? {} : { variants: rise, initial: "hidden", animate: "visible", custom: i };
 
   return (
-    <section
-      id="home"
-      ref={spotlightRef}
-      onPointerMove={handlePointerMove}
-      className="relative isolate flex min-h-[100svh] flex-col overflow-hidden border-b border-border pt-20"
-    >
-      {/* Ambient color field: a large, always-on atmospheric wash anchored
-          top-right (where the topology sits), plus a subtler pointer-
-          tracked one — real color presence, not a tiny spotlight. */}
+    <section id="home" className="relative isolate h-[100svh] min-h-[560px] overflow-hidden">
       <div
         aria-hidden="true"
-        className="absolute -top-1/4 -right-1/4 -z-20 size-[70vw] rounded-full opacity-[0.14] blur-3xl"
-        style={{
-          background:
-            "radial-gradient(circle, var(--accent) 0%, transparent 70%)",
-        }}
+        className="absolute -top-1/3 right-[-20%] z-0 size-[90vw] rounded-full opacity-[0.16] blur-3xl"
+        style={{ background: "radial-gradient(circle, var(--accent) 0%, transparent 65%)" }}
       />
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-20 opacity-[0.1] blur-3xl"
-        style={{
-          background:
-            "radial-gradient(600px circle at var(--x, 70%) var(--y, 30%), var(--accent), transparent 70%)",
-        }}
+        className="absolute bottom-[-30%] left-[-15%] z-0 size-[60vw] rounded-full opacity-[0.1] blur-3xl"
+        style={{ background: "radial-gradient(circle, var(--system) 0%, transparent 65%)" }}
       />
+      <HeroTopology />
 
-      <Container className="flex flex-1 flex-col justify-center">
-        <motion.div
-          initial={reduceMotion ? undefined : "hidden"}
-          animate={reduceMotion ? undefined : "visible"}
-          variants={reduceMotion ? undefined : container}
-          className="grid gap-6 lg:grid-cols-12"
-        >
-          <div className="relative lg:col-span-7">
-            <motion.div
-              variants={reduceMotion ? undefined : item}
-              className="flex items-center gap-2 font-mono text-xs tracking-[0.18em] text-muted-2"
+      {/* Edge annotations — top right. */}
+      <motion.div
+        {...(reduce ? {} : { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { delay: 0.9 } })}
+        className="absolute top-24 right-6 z-30 max-w-[15rem] text-right md:top-[20%] md:right-[6vw] md:max-w-xs"
+      >
+        <p className="font-mono text-[10px] tracking-[0.16em] text-accent">
+          CYBERSECURITY · MACHINE LEARNING · SYSTEMS
+        </p>
+        <p className="mt-3 hidden text-sm leading-relaxed text-foreground/75 md:block">
+          {site.tagline}
+        </p>
+        <nav aria-label="Explore" className="mt-5 flex flex-col items-end gap-2">
+          {[
+            { href: "#research", label: "Explore research" },
+            { href: "#projects", label: "Explore systems" },
+          ].map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              className="group inline-flex items-center gap-1.5 border-b border-accent/30 pb-0.5 font-mono text-[11px] tracking-[0.12em] text-foreground uppercase transition-colors hover:border-accent"
             >
-              <span className="h-px w-6 bg-border-strong" aria-hidden="true" />
-              CYBERSECURITY · MACHINE LEARNING · SYSTEMS
-            </motion.div>
+              {l.label}
+              <ArrowUpRight className="size-3.5 text-accent transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </a>
+          ))}
+        </nav>
+      </motion.div>
 
-            <motion.h1
-              variants={reduceMotion ? undefined : item}
-              className="font-display -ml-1 text-[clamp(3rem,10vw,9rem)] leading-[0.88] font-bold tracking-tight text-foreground"
-            >
-              <span className="block">Hardik</span>
-              <span className="block">
-                Ahl
-                <span className="text-accent">awat</span>
-              </span>
-            </motion.h1>
+      {/* The name — the largest object in the scene, bottom-anchored. */}
+      <h1 className="font-display absolute right-0 bottom-[16%] left-0 z-10 px-[3vw] leading-[0.82] font-bold tracking-tighter text-foreground uppercase md:bottom-[12%]">
+        <span className="block overflow-hidden text-[17vw]">
+          <motion.span className="block" {...anim(0)}>
+            Hardik
+          </motion.span>
+        </span>
+        <span className="block overflow-hidden pl-[11vw] text-[17vw]">
+          <motion.span className="block" {...anim(1)}>
+            Ahl<span className="text-accent">awat</span>
+          </motion.span>
+        </span>
+      </h1>
 
-            <motion.p
-              variants={reduceMotion ? undefined : item}
-              className="mt-6 max-w-md text-balance leading-relaxed text-accent-foreground/80"
-            >
-              {site.tagline}
-            </motion.p>
-
-            <motion.nav
-              variants={reduceMotion ? undefined : item}
-              className="mt-6 flex flex-col gap-2"
-            >
-              {EDITORIAL_LINKS.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  className="group inline-flex w-fit items-center gap-2 border-b border-transparent pb-0.5 text-sm font-medium text-foreground transition-colors duration-150 hover:border-accent"
-                >
-                  {link.label}
-                  <ArrowUpRight className="size-4 text-accent transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                </a>
-              ))}
-            </motion.nav>
-          </div>
-
-          {/* Topology occupies the right column deliberately — it's a
-              compositional element, not a background pasted behind text. */}
-          <div className="relative min-h-[280px] lg:col-span-5">
-            <HeroTopology />
-          </div>
-        </motion.div>
-
-        <motion.div
-          variants={reduceMotion ? undefined : item}
-          initial={reduceMotion ? undefined : "hidden"}
-          animate={reduceMotion ? undefined : "visible"}
-          className="mt-16 flex flex-col gap-4 font-mono text-[11px] tracking-[0.14em] text-muted-2 sm:mt-24 sm:flex-row sm:items-end sm:justify-between"
-        >
-          <span>RESEARCH / EXPERIMENT / MEASURE / BUILD</span>
-          <div className="flex flex-col gap-0.5 sm:items-end sm:text-right">
-            <span>FIELD / {site.location.split(",")[0].toUpperCase()}</span>
-            <span>
-              {research.length} RESEARCH · {projects.filter((p) => p.featured).length} SYSTEMS
-            </span>
-            <span className="flex items-center gap-1.5 text-verified">
-              <span className="node-pulse inline-flex size-1.5 rounded-full bg-verified" />
-              ACTIVE
-            </span>
-          </div>
-        </motion.div>
-      </Container>
+      {/* Edge annotations — bottom. */}
+      <div className="absolute right-6 bottom-6 left-6 z-30 flex items-end justify-between font-mono text-[10px] tracking-[0.14em] text-muted-2 md:right-[6vw] md:left-[6vw]">
+        <span>
+          28.61° N 77.21° E
+          <br />
+          {site.location.toUpperCase()}
+        </span>
+        <span className="hidden md:block">SCROLL ↓</span>
+        <span className="text-right">
+          {research.length} RESEARCH · {projects.filter((p) => p.featured).length} SYSTEM
+          <br />
+          <span className="text-verified">● ACTIVE</span>
+        </span>
+      </div>
     </section>
   );
 }
