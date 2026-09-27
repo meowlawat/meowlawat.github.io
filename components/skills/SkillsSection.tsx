@@ -8,7 +8,7 @@ export function SkillsSection() {
   return (
     <section id="skills" className="border-b border-border py-20 sm:py-28">
       <Container>
-        <SectionHeader index="06" label="SKILLS" title="Skills" />
+        <SectionHeader index="07" label="SKILLS" title="Skills" />
 
         <div className="grid gap-8 sm:grid-cols-3">
           {skills.map((group, i) => (

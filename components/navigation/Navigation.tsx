@@ -11,9 +11,10 @@ import { SPRING_SNAPPY, UI } from "@/lib/motion";
 const LINKS = [
   { href: "#research", label: "Research", index: "01" },
   { href: "#projects", label: "Projects", index: "02" },
-  { href: "#experience", label: "Experience", index: "04" },
-  { href: "#about", label: "About", index: "08" },
-  { href: "#contact", label: "Contact", index: "09" },
+  { href: "#findings", label: "Findings", index: "03" },
+  { href: "#experience", label: "Experience", index: "05" },
+  { href: "#about", label: "About", index: "09" },
+  { href: "#contact", label: "Contact", index: "10" },
 ];
 
 // Sections without their own nav link (github, education, skills,
@@ -22,7 +23,8 @@ const LINKS = [
 const SECTION_TO_LINK: Record<string, string> = {
   research: "#research",
   projects: "#projects",
-  github: "#projects",
+  findings: "#findings",
+  github: "#findings",
   experience: "#experience",
   education: "#experience",
   skills: "#experience",
@@ -90,9 +92,16 @@ export function Navigation() {
       <Container className="flex h-16 items-center justify-between">
         <a
           href="#home"
-          className="font-mono text-sm font-medium tracking-tight text-foreground"
+          className="flex items-center gap-2 font-mono text-sm font-medium tracking-tight text-foreground"
         >
           HARDIK
+          <span className="hidden items-center gap-1.5 text-[10px] font-normal tracking-[0.14em] text-muted-2 sm:flex">
+            <span className="relative flex size-1.5">
+              <span className="node-pulse absolute inline-flex size-full rounded-full bg-verified opacity-60 motion-reduce:hidden" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-verified" />
+            </span>
+            SYSTEM ONLINE
+          </span>
         </a>
 
         <nav className="hidden items-center gap-1 md:flex">

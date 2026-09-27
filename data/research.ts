@@ -26,8 +26,8 @@ export const research: ResearchProject[] = [
       nodes: [
         { id: "client", label: "Client" },
         { id: "encrypted", label: "Encrypted Patient Data" },
-        { id: "enclave", label: "SGX Enclave" },
-        { id: "shadow", label: "Role-Aware Shadow View" },
+        { id: "enclave", label: "SGX Enclave", state: "verified" },
+        { id: "shadow", label: "Role-Aware Shadow View", state: "verified" },
         { id: "result", label: "Authorized Result" },
       ],
       edges: [
@@ -55,6 +55,56 @@ export const research: ResearchProject[] = [
       // NOTE: github.com/meowlawat/Runtime-Data-Shadowing returned 404 as of
       // 2026-09-27 (checked directly + common naming variants). Omitted
       // pending confirmation that the repository is public. See summary.
+    },
+  },
+  {
+    slug: "token-accounting-integrity-llm-metering",
+    title: "Token-Accounting Integrity in LLM Metering",
+    subtitle: "Client-Side Under-Payment in Usage-Based Billing",
+    status: "Independent research — not peer-reviewed",
+    venue: "Zenodo artifact",
+    publisher: "Desk-rejected — Elsevier Computers & Security (scope)",
+    year: "2026",
+    description:
+      "A reproducible testbed and formal model studying client-side under-payment in LLM metering: an authenticated, legitimate client that pays less than it owes, across three accounting architectures and two inference backends.",
+    technologies: ["FastAPI", "PostgreSQL", "TLA+", "Python"],
+    metrics: [
+      { label: "Value leakage, controlled", value: "58.3%" },
+      { label: "Value leakage, real serving stack", value: "69.0%" },
+      { label: "Formal verification", value: "40/40", context: "TLA+ configurations, 0 disagreements" },
+      { label: "Over-serving onset", value: "100 ms", context: "reconciliation delay, sequential arrivals" },
+    ],
+    architecture: {
+      nodes: [
+        { id: "client", label: "Client" },
+        { id: "gateway", label: "Metering Gateway" },
+        { id: "usage", label: "Client-Influenced Usage Record" },
+        { id: "authoritative", label: "Server-Authoritative Recount", state: "verified" },
+        { id: "billed", label: "Net Debit" },
+      ],
+      edges: [
+        { from: "client", to: "gateway" },
+        { from: "gateway", to: "usage" },
+        { from: "usage", to: "authoritative" },
+        { from: "authoritative", to: "billed" },
+      ],
+    },
+    details: {
+      problem:
+        "Usage-based LLM pricing makes metering a security boundary: value reaches the client before accounting is finalized, and most security work on that boundary assumes the client is honest. This studies the remaining direction — an authenticated, legitimate client that under-pays.",
+      approach:
+        "Unifies known enabling mechanisms under one integrity property (delivered value must not exceed net debit), taxonomized into three dimensions — state synchronization (B0, baseline), commitment timing (M1), and usage authority (M2) — measured across three accounting architectures, three execution topologies, and two independent inference data planes, with every mechanism model-checked in TLA+.",
+      threatModel:
+        "Honest provider; dishonest client holding valid credentials, controlling request payloads (including client-declared usage fields), concurrency, and connection lifecycle, but unable to compromise TLS, the database, or server code.",
+      implementation:
+        "FastAPI gateway fronting a deterministic mock generator and a real llama.cpp backend, with three accounting backends (mutable balance, append-only ledger, event queue) behind common interfaces so experiments compare semantics rather than unrelated code.",
+      results:
+        "An architecture that recounts usage correctly but bills from a client-influenced representation leaks 58.3% of delivered value in the controlled setting and 69.0% against the real serving stack. Reservation and abort-safe finalization are orthogonal — both are required for solvency and integrity together, confirmed by exhaustive model checking across all four combinations (40/40 matched, 0 disagreements).",
+      limitations:
+        "No mechanized refinement proof from the TLA+ specification to the implementation; the formal model checks safety only, on a finite instance. One physical host, one local serving stack, one small model. Pricing tiers are synthetic. No commercial provider was tested. An earlier version of this work claimed detectability as a result — that claim was withdrawn after the project's own audit found the instrumentation restated experimenter-assigned labels rather than measuring evidence.",
+    },
+    links: {
+      artifact: "https://doi.org/10.5281/zenodo.22086254",
     },
   },
   {

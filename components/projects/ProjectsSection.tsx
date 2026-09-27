@@ -11,9 +11,9 @@ export function ProjectsSection() {
       <Container>
         <SectionHeader
           index="02"
-          label="PROJECTS"
-          title="Featured Projects"
-          description="Systems built end-to-end: from network simulation and telemetry to prediction and detection."
+          label="FLAGSHIP PROJECT"
+          title="Systems"
+          description="An autonomous system built end-to-end: simulation, telemetry, prediction, and recovery — with zero outbound dependency."
         />
         <div>
           {featured.map((project, i) => (

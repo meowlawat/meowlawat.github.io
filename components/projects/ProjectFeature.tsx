@@ -5,7 +5,7 @@ import { MetricGrid } from "@/components/ui/Metric";
 import { TagRow } from "@/components/ui/Tag";
 import { ExternalLink } from "@/components/ui/ExternalLink";
 import { Reveal } from "@/components/ui/Reveal";
-import { ArchitectureDiagram } from "@/components/architecture/ArchitectureDiagram";
+import { NetworkDiagram } from "@/components/architecture/NetworkDiagram";
 import { cn } from "@/lib/utils";
 
 export function ProjectFeature({
@@ -65,7 +65,7 @@ export function ProjectFeature({
                 SYSTEM TOPOLOGY
               </span>
             ) : null}
-            <ArchitectureDiagram
+            <NetworkDiagram
               architecture={project.architecture}
               className={flagship ? "sm:p-8" : undefined}
             />

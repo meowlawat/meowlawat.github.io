@@ -1,6 +1,7 @@
 import { Hero } from "@/components/hero/Hero";
 import { ResearchSection } from "@/components/research/ResearchSection";
 import { ProjectsSection } from "@/components/projects/ProjectsSection";
+import { SecurityFindingsSection } from "@/components/findings/SecurityFindingsSection";
 import { GitHubSection } from "@/components/github/GitHubSection";
 import { ExperienceSection } from "@/components/experience/ExperienceSection";
 import { EducationSection } from "@/components/education/EducationSection";
@@ -15,6 +16,7 @@ export default function Home() {
       <Hero />
       <ResearchSection />
       <ProjectsSection />
+      <SecurityFindingsSection />
       <GitHubSection />
       <ExperienceSection />
       <EducationSection />

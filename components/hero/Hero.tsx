@@ -12,8 +12,8 @@ import { projects } from "@/data/projects";
 import { githubSnapshot } from "@/data/generated/github";
 import { DRAMATIC, SECTION } from "@/lib/motion";
 
-const HeroCanvas = dynamic(
-  () => import("@/components/hero/HeroCanvas").then((m) => m.HeroCanvas),
+const HeroTopology = dynamic(
+  () => import("@/components/hero/HeroTopology").then((m) => m.HeroTopology),
   { ssr: false },
 );
 
@@ -58,14 +58,10 @@ export function Hero() {
       className="relative isolate flex min-h-[100svh] flex-col overflow-hidden border-b border-border pt-24"
       style={{
         backgroundImage:
-          "radial-gradient(500px circle at var(--x, 50%) var(--y, 20%), rgba(91,141,239,0.07), transparent 65%)",
+          "radial-gradient(500px circle at var(--x, 50%) var(--y, 20%), rgba(79,140,255,0.06), transparent 65%)",
       }}
     >
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-20 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:56px_56px] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,#000_40%,transparent_100%)]"
-      />
-      <HeroCanvas />
+      <HeroTopology />
 
       <Container className="flex flex-1 flex-col justify-center">
         <motion.div
@@ -88,9 +84,10 @@ export function Hero() {
 
             <motion.h1
               variants={reduceMotion ? undefined : item}
-              className="text-[clamp(2.5rem,5vw+1rem,5.25rem)] leading-[0.98] font-semibold tracking-tight text-foreground"
+              className="font-display text-[clamp(2.75rem,6vw+1rem,6rem)] leading-[0.92] font-semibold tracking-tight text-foreground"
             >
-              {site.name}
+              <span className="block">Hardik</span>
+              <span className="block">Ahlawat</span>
             </motion.h1>
 
             <motion.p
@@ -165,6 +162,16 @@ export function Hero() {
                 </span>
               </div>
             ))}
+            <div className="flex items-baseline justify-between gap-4 border-t border-border pt-4">
+              <span className="text-xs text-muted-2">Status</span>
+              <span className="flex items-center gap-1.5 font-mono text-sm text-verified">
+                <span className="relative flex size-1.5">
+                  <span className="node-pulse absolute inline-flex size-full rounded-full bg-verified opacity-60 motion-reduce:hidden" />
+                  <span className="relative inline-flex size-1.5 rounded-full bg-verified" />
+                </span>
+                SYSTEM ONLINE
+              </span>
+            </div>
           </motion.div>
         </motion.div>
       </Container>
@@ -177,7 +184,7 @@ export function Hero() {
       >
         <Container className="flex h-12 items-center justify-between font-mono text-[11px] tracking-[0.1em] text-muted-2">
           <span>SCROLL</span>
-          <span>01 / 09</span>
+          <span>01 / 10</span>
         </Container>
       </motion.div>
     </section>

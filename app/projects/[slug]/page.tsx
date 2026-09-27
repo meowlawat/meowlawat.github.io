@@ -7,7 +7,7 @@ import { MetricGrid } from "@/components/ui/Metric";
 import { TagRow } from "@/components/ui/Tag";
 import { DetailSection } from "@/components/ui/DetailSection";
 import { ExternalLink } from "@/components/ui/ExternalLink";
-import { ArchitectureDiagram } from "@/components/architecture/ArchitectureDiagram";
+import { NetworkDiagram } from "@/components/architecture/NetworkDiagram";
 
 export function generateStaticParams() {
   return projects.map((p) => ({ slug: p.slug }));
@@ -90,7 +90,7 @@ export default async function ProjectDetailPage({
 
         {project.architecture ? (
           <div className="mt-10">
-            <ArchitectureDiagram architecture={project.architecture} />
+            <NetworkDiagram architecture={project.architecture} />
           </div>
         ) : null}
 

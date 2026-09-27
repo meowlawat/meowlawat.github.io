@@ -8,7 +8,7 @@ export function EducationSection() {
     <section id="education" className="border-b border-border py-20 sm:py-28">
       <Container>
         <SectionHeader
-          index="05"
+          index="06"
           label="EDUCATION"
           title="Education"
           description="Dual enrollment across two accredited institutions, pursued concurrently since 2024."

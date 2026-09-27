@@ -12,6 +12,8 @@ export interface ArchitectureNode {
   id: string;
   label: string;
   description?: string;
+  /** Signal Lab color semantics: "signal" (blue, default) or "verified" (lime, trusted/validated step). Never "alert" here — orange stays reserved for the Security Findings section. */
+  state?: "signal" | "verified";
 }
 
 export interface ArchitectureEdge {
@@ -50,6 +52,8 @@ export interface ResearchProject {
   links: {
     repo?: string;
     paper?: string;
+    /** Non-code, non-paper archival record (e.g. a Zenodo DOI) for work with no public repo. */
+    artifact?: string;
   };
 }
 
@@ -105,6 +109,17 @@ export interface Achievement {
   title: string;
   org?: string;
   year?: string;
+}
+
+export interface Finding {
+  id: string;
+  title: string;
+  description: string;
+  /** Where this was found/documented — never invented, always traceable to real source material. */
+  source: string;
+  year?: string;
+  /** Present only when the finding is unpublished/unreviewed independent work — rendered plainly, same weight as the rest. */
+  status?: string;
 }
 
 export interface GeneratedRepo {

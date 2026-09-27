@@ -7,7 +7,7 @@ import { MetricGrid } from "@/components/ui/Metric";
 import { TagRow } from "@/components/ui/Tag";
 import { DetailSection } from "@/components/ui/DetailSection";
 import { ExternalLink } from "@/components/ui/ExternalLink";
-import { ArchitectureDiagram } from "@/components/architecture/ArchitectureDiagram";
+import { NetworkDiagram } from "@/components/architecture/NetworkDiagram";
 
 export function generateStaticParams() {
   return research.map((r) => ({ slug: r.slug }));
@@ -98,7 +98,7 @@ export default async function ResearchDetailPage({
 
         {paper.architecture ? (
           <div className="mt-10">
-            <ArchitectureDiagram architecture={paper.architecture} />
+            <NetworkDiagram architecture={paper.architecture} />
           </div>
         ) : null}
 
@@ -119,13 +119,16 @@ export default async function ResearchDetailPage({
           </DetailSection>
         </div>
 
-        {paper.links.repo || paper.links.paper ? (
+        {paper.links.repo || paper.links.paper || paper.links.artifact ? (
           <div className="mt-10 flex flex-wrap gap-6 border-t border-border pt-8">
             {paper.links.repo ? (
               <ExternalLink href={paper.links.repo}>Repository</ExternalLink>
             ) : null}
             {paper.links.paper ? (
               <ExternalLink href={paper.links.paper}>Paper</ExternalLink>
+            ) : null}
+            {paper.links.artifact ? (
+              <ExternalLink href={paper.links.artifact}>Archive</ExternalLink>
             ) : null}
           </div>
         ) : null}

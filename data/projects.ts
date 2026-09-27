@@ -83,7 +83,7 @@ export const projects: Project[] = [
         { from: "lstm", to: "anomaly" },
       ],
     },
-    featured: true,
+    featured: false, // kept as real, working data — not surfaced in the primary homepage experience (see MPLS as the sole flagship project)
     details: {
       overview:
         "A deep-learning intrusion detection system designed for localized, real-time packet analysis: traffic features are reduced with PCA, an LSTM autoencoder learns to reconstruct normal traffic, and anomalies are flagged by reconstruction error rather than a fixed signature set.",

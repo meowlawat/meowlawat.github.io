@@ -7,7 +7,7 @@ export function AchievementsSection() {
   return (
     <section id="achievements" className="border-b border-border py-16 sm:py-20">
       <Container>
-        <SectionHeader index="07" label="ACHIEVEMENTS" title="Achievements" />
+        <SectionHeader index="08" label="ACHIEVEMENTS" title="Achievements" />
 
         <ul className="flex flex-col divide-y divide-border border-t border-border">
           {achievements.map((a, i) => (

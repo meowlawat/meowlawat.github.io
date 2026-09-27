@@ -9,10 +9,22 @@
   --foreground: #ececee;
   --muted: #93949c;
   --muted-2: #7d7e85;
-  --accent: #5b8def;
+  /* Signal Lab color semantics — each accent means one thing, everywhere:
+     blue = signal/information, lime = verified/live, orange = security finding. */
+  --accent: #4f8cff;
   --accent-foreground: #eaf1ff;
-  --accent-soft: rgba(91, 141, 239, 0.12);
-  --accent-border: rgba(91, 141, 239, 0.35);
+  --accent-soft: rgba(79, 140, 255, 0.12);
+  --accent-border: rgba(79, 140, 255, 0.35);
+
+  --verified: #9ae62e;
+  --verified-foreground: #eafccf;
+  --verified-soft: rgba(154, 230, 46, 0.12);
+  --verified-border: rgba(154, 230, 46, 0.35);
+
+  --alert: #ff8a3d;
+  --alert-foreground: #ffe9d6;
+  --alert-soft: rgba(255, 138, 61, 0.12);
+  --alert-border: rgba(255, 138, 61, 0.35);
 }
 
 @theme inline {
@@ -28,7 +40,16 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-soft: var(--accent-soft);
   --color-accent-border: var(--accent-border);
+  --color-verified: var(--verified);
+  --color-verified-foreground: var(--verified-foreground);
+  --color-verified-soft: var(--verified-soft);
+  --color-verified-border: var(--verified-border);
+  --color-alert: var(--alert);
+  --color-alert-foreground: var(--alert-foreground);
+  --color-alert-soft: var(--alert-soft);
+  --color-alert-border: var(--alert-border);
   --font-sans: var(--font-geist-sans);
+  --font-display: var(--font-space-grotesk);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -73,16 +94,32 @@ body {
   }
 }
 
-@keyframes diagram-pulse {
+/* Network Lab visual grammar: dashed connections "flow" via a scrolling
+   dash offset, and nodes get a slow ambient glow pulse. Both are pure CSS,
+   applied to SVG elements, and neutralized under reduced motion below. */
+@keyframes signal-flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+@keyframes node-glow {
   0%,
   100% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.6);
+    opacity: 0.55;
   }
   50% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
   }
+}
+
+.signal-connection {
+  stroke-dasharray: 3 7;
+  animation: signal-flow 1.4s linear infinite;
+}
+
+.node-pulse {
+  animation: node-glow 2.4s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -96,6 +133,11 @@ body {
   }
 
   .scroll-progress {
+    animation: none !important;
+  }
+
+  .signal-connection,
+  .node-pulse {
     animation: none !important;
   }
 }
