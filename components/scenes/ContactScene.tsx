@@ -1,11 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { motion, useMotionValueEvent, useScroll } from "motion/react";
+import { useRef } from "react";
+import { motion, useTransform, type MotionValue } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
 import { site } from "@/data/site";
 import { githubSnapshot } from "@/data/generated/github";
-import { cn } from "@/lib/utils";
+import { useSceneProgress } from "@/lib/scroll";
 
 // Deterministic (seeded) layout so server and client render the same field.
 function seeded(n: number) {
@@ -26,56 +26,64 @@ const LINKS = [
   { href: site.orcid, label: "ORCID", external: true },
 ];
 
+function FieldNode({ x, y, fade, p }: { x: number; y: number; fade: number; p: MotionValue<number> }) {
+  // Each node fades and shrinks over its own short window as the read-head
+  // passes it — a continuous departure, not a class toggling at a threshold.
+  const o = useTransform(p, [Math.max(0, fade - 0.05), fade], [0.7, 0]);
+  const scale = useTransform(p, [Math.max(0, fade - 0.05), fade], [1, 0]);
+  return (
+    <motion.span
+      aria-hidden="true"
+      style={{ left: `${x}%`, top: `${y}%`, opacity: o, scale }}
+      className="absolute size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent"
+    />
+  );
+}
+
 /**
  * The ending. Scroll progress quiets the system: nodes drop out one by one,
  * the atmosphere dims, one sage node remains — then the contact resolves.
+ * Every stage of that quieting is a direct function of scroll position, so
+ * it tracks speed and reverses cleanly with the reader.
  */
 export function ContactScene() {
   const ref = useRef<HTMLElement>(null);
-  const [p, setP] = useState(0);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  useMotionValueEvent(scrollYProgress, "change", (v) => setP(Math.round(v * 50) / 50));
+  const p = useSceneProgress(ref);
 
-  const resolved = p >= 0.46;
+  const washO = useTransform(p, (v) => Math.max(0.03, 0.22 - v * 0.45));
+  const nodeScale = useTransform(p, [0.32, 0.44], [1, 1.6]);
+  const textO = useTransform(p, [0.4, 0.5], [0, 1]);
+  const textY = useTransform(p, [0.4, 0.5], [40, 0]);
+  const textPE = useTransform(textO, (o) => (o > 0.5 ? "auto" : "none"));
   const repo = githubSnapshot.repos[0];
 
   return (
     <section id="contact" ref={ref} className="relative h-[240vh]">
       <div className="sticky top-0 flex h-[100svh] items-center overflow-hidden px-6 md:px-[6vw]">
-        <div
+        <motion.div
           aria-hidden="true"
-          className="absolute inset-0 transition-opacity duration-700"
-          style={{
-            opacity: Math.max(0.03, 0.22 - p * 0.45),
-            background: "radial-gradient(50% 50% at 50% 50%, var(--accent), transparent 70%)",
-          }}
-        />
-        {FIELD.map((n, i) => (
-          <span
-            key={i}
-            aria-hidden="true"
-            style={{ left: `${n.x}%`, top: `${n.y}%` }}
-            className={cn(
-              "absolute size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent transition-[opacity,scale] duration-700",
-              p >= n.fade ? "scale-0 opacity-0" : "opacity-70",
-            )}
+          style={{ opacity: washO }}
+          className="absolute inset-0"
+        >
+          <div
+            className="absolute inset-0"
+            style={{ background: "radial-gradient(50% 50% at 50% 50%, var(--accent), transparent 70%)" }}
           />
+        </motion.div>
+        {FIELD.map((n, i) => (
+          <FieldNode key={i} x={n.x} y={n.y} fade={n.fade} p={p} />
         ))}
 
         {/* The one node that stays: the system, idle and waiting. */}
         <motion.span
           aria-hidden="true"
-          initial={false}
-          animate={{ scale: p >= 0.4 ? 1.6 : 1 }}
-          transition={{ type: "spring", stiffness: 60, damping: 12 }}
+          style={{ scale: nodeScale }}
           className="node-pulse absolute top-[26%] right-[14%] size-3 rounded-full bg-verified shadow-[0_0_30px_8px_var(--verified-soft)] md:top-1/2 md:right-[22%]"
         />
 
         <motion.div
-          initial={false}
-          animate={{ opacity: resolved ? 1 : 0, y: resolved ? 0 : 40 }}
-          transition={{ type: "spring", stiffness: 70, damping: 18 }}
-          className="relative has-[:focus-visible]:!opacity-100"
+          style={{ opacity: textO, y: textY, pointerEvents: textPE }}
+          className="relative has-[:focus-visible]:!pointer-events-auto has-[:focus-visible]:!opacity-100"
         >
           <span className="font-mono text-[11px] tracking-[0.18em] text-muted-2">
             05 / SIGNAL · AWAITING CONNECTION
@@ -95,10 +103,10 @@ export function ContactScene() {
                 href={l.href}
                 target={l.external ? "_blank" : undefined}
                 rel={l.external ? "noopener noreferrer" : undefined}
-                className="group inline-flex items-center gap-1.5 border-b border-accent/30 pb-1 font-mono text-sm tracking-[0.08em] text-foreground uppercase transition-colors hover:border-accent"
+                className="group inline-flex items-center gap-1.5 border-b border-accent/30 pb-1 font-mono text-sm tracking-[0.08em] text-foreground uppercase transition-colors duration-300 ease-settle hover:border-accent"
               >
                 {l.label}
-                <ArrowUpRight className="size-4 text-accent transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                <ArrowUpRight className="size-4 text-accent transition-transform duration-300 ease-settle group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </a>
             ))}
           </nav>

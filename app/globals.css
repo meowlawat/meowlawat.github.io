@@ -33,6 +33,8 @@
 }
 
 @theme inline {
+  --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-glide: cubic-bezier(0.65, 0, 0.35, 1);
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-surface-hover: var(--surface-hover);
@@ -122,7 +124,7 @@ body {
 
 .signal-connection {
   stroke-dasharray: 3 7;
-  animation: signal-flow 1.4s linear infinite;
+  animation: signal-flow 2.8s linear infinite;
 }
 
 .node-pulse {
@@ -197,13 +199,17 @@ circle[data-node] {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
+/* Reduced motion is its own composition, not a broken one: continuous
+   decorative motion stops, nothing travels or drifts, but state changes still
+   read — as short, direct crossfades rather than instant cuts. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 160ms !important;
+    transition-timing-function: linear !important;
     scroll-behavior: auto !important;
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { motion, useTransform, type MotionValue } from "motion/react";
 
 interface Node {
   id: number;
@@ -67,15 +68,25 @@ function buildEdges(nodes: Node[], maxDist: number, signals: number): Edge[] {
  * *inside* the system rather than on top of a picture of one. Nodes form
  * on load, a ring sweeps once, signals travel along edges, and pointer
  * proximity brightens nearby nodes. Fully static under reduced motion.
+ *
+ * `depth` (0→1 as the hero scrolls out of view) drives a very subtle
+ * differential parallax: the background field drifts less than the
+ * foreground layer, so the environment reads as having depth without
+ * ever announcing itself as a parallax effect.
  */
-export function HeroTopology() {
+export function HeroTopology({ depth }: { depth?: MotionValue<number> }) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<SVGSVGElement>(null);
   const [graph, setGraph] = useState<{ nodes: Node[]; edges: Edge[] } | null>(null);
   const [reduce, setReduce] = useState(false);
+  const zero = useTransform(() => 0);
+  const d = depth ?? zero;
+  const bgY = useTransform(d, [0, 1], ["0vh", "5vh"]);
+  const fgY = useTransform(d, [0, 1], ["0vh", "13vh"]);
 
   useEffect(() => {
     const svg = backRef.current;
-    const target = svg?.parentElement;
+    const target = rootRef.current;
     if (!svg || !target) return;
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -130,16 +141,24 @@ export function HeroTopology() {
       fill={n.verified ? "var(--verified)" : "var(--accent)"}
       opacity={reduce ? 0.6 : 0}
       className={n.verified ? "node-pulse" : undefined}
-      style={reduce ? undefined : { animation: `node-form 0.7s cubic-bezier(0.16,1,0.3,1) ${n.delay}s forwards` }}
+      style={
+        reduce
+          ? undefined
+          : {
+              animation: `node-form 0.7s cubic-bezier(0.16,1,0.3,1) ${n.delay}s forwards`,
+              transition: "opacity 320ms var(--ease-settle)",
+            }
+      }
     />
   );
 
   return (
-    <>
+    <div ref={rootRef} className="contents">
+      <motion.div style={{ y: bgY }} className="absolute inset-0 z-0">
       <svg
         ref={backRef}
         {...svgProps}
-        className="pointer-events-none absolute inset-0 z-0 h-full w-full blur-[0.6px]"
+        className="pointer-events-none absolute inset-0 h-full w-full blur-[0.6px]"
       >
         {[180, 300, 440, 620].map((r) => (
           <ellipse
@@ -207,9 +226,11 @@ export function HeroTopology() {
             </text>
           ))}
       </svg>
+      </motion.div>
 
       {/* Foreground layer: crisp nodes and traveling signals in front of the type. */}
-      <svg {...svgProps} className="pointer-events-none absolute inset-0 z-20 h-full w-full">
+      <motion.div style={{ y: fgY }} className="absolute inset-0 z-20">
+      <svg {...svgProps} className="pointer-events-none absolute inset-0 h-full w-full">
         {graph?.nodes.filter((n) => n.front).map((n) => nodeCircle(n, n.verified ? 7 : 5))}
         {!reduce &&
           graph?.edges
@@ -228,6 +249,7 @@ export function HeroTopology() {
               );
             })}
       </svg>
-    </>
+      </motion.div>
+    </div>
   );
 }

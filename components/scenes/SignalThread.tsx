@@ -2,12 +2,15 @@
 
 import { useRef } from "react";
 import type React from "react";
-import { motion, useScroll, useTransform, useReducedMotion } from "motion/react";
+import { useTransform, useReducedMotion, motion } from "motion/react";
+import { useSceneProgress } from "@/lib/scroll";
 
 /**
  * The connective tissue between scenes: a signal that leaves one scene and
  * enters the next. Drawn by scroll position, with its color shifting from
- * the outgoing scene's meaning to the incoming one's.
+ * the outgoing scene's meaning to the incoming one's — the same read-head
+ * that drives every pinned scene, so a fast flick through this gap never
+ * teleports or desyncs from the scenes on either side of it.
  */
 export function SignalThread({
   from,
@@ -20,10 +23,10 @@ export function SignalThread({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 85%", "end 35%"] });
-  const scaleY = useTransform(scrollYProgress, [0, 1], [0, 1]);
-  const color = useTransform(scrollYProgress, [0, 1], [from, to]);
-  const top = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+  const p = useSceneProgress(ref, ["start 85%", "end 35%"]);
+  const scaleY = useTransform(p, [0, 1], [0, 1]);
+  const color = useTransform(p, [0, 1], [from, to]);
+  const top = useTransform(p, [0, 1], ["0%", "100%"]);
 
   return (
     <div
@@ -39,7 +42,7 @@ export function SignalThread({
       {!reduce ? (
         <motion.span
           style={{ top, backgroundColor: color }}
-          className="absolute left-0 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full shadow-[0_0_18px_4px_rgba(113,135,179,0.35)]"
+          className="absolute left-0 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full shadow-[0_0_10px_2px_rgba(113,135,179,0.22)]"
         />
       ) : null}
       {label ? (

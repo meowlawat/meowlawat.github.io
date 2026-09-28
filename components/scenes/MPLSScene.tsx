@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { motion, useMotionValueEvent, useScroll } from "motion/react";
+import { motion, useMotionValueEvent, useReducedMotion, useTransform } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
 import {
   SceneGraph,
@@ -10,9 +10,12 @@ import {
   type NodeState,
   type SceneLink,
   type SceneNode,
+  type SceneTrace,
 } from "@/components/scenes/SceneGraph";
+import { CaptionReel } from "@/components/scenes/CaptionReel";
 import { projects } from "@/data/projects";
 import { cn } from "@/lib/utils";
+import { smoothSteps, useBand, useSceneProgress } from "@/lib/scroll";
 
 const mpls = projects.find((p) => p.slug === "mpls-predictive-copilot")!;
 
@@ -53,7 +56,7 @@ const PLANE: Plane[] = [
 function nodeState(id: string, s: number): NodeState {
   const network = ["a", "pe1", "pe2", "b"].includes(id);
   if (network) {
-    if (s >= 5 && ["a", "pe1", "pe2", "b"].includes(id)) return id === "pe2" ? "verified" : "system";
+    if (s >= 5) return id === "pe2" ? "verified" : "system";
     if (s >= 2 && id === "b") return "degraded";
     return s >= 0 ? "system" : "idle";
   }
@@ -105,25 +108,28 @@ const TAGS: Record<number, Record<string, string>> = {
   5: { pe2: "backup path active", op: "system recovered" },
 };
 
+// Scroll → sequence position t ∈ [0, 6): t = i means "state i is current".
+const P0 = 0.08;
+const P1 = 0.84;
+const toT = (p: number) => Math.min(5.99, Math.max(0, ((p - P0) / (P1 - P0)) * 6));
+
 export function MPLSScene() {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLElement>(null);
+  const reduce = useReducedMotion();
   const [stage, setStage] = useState(-1);
 
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start start", "end end"],
-  });
+  const p = useSceneProgress(ref);
+  const t = useTransform(p, toT);
 
-  useMotionValueEvent(scrollYProgress, "change", (p) => {
-    const t = Math.min(5.99, Math.max(0, ((p - 0.08) / 0.76) * 6));
-    setStage(p < 0.05 ? -1 : Math.floor(t));
+  useMotionValueEvent(p, "change", (v) => {
+    setStage(v < 0.05 ? -1 : Math.floor(toT(v)));
   });
 
   const s = stage;
-  const nodes: SceneNode[] = PLANE.map((p) => ({
-    ...p,
-    state: nodeState(p.id, s),
-    tag: TAGS[s]?.[p.id],
+  const nodes: SceneNode[] = PLANE.map((n) => ({
+    ...n,
+    state: nodeState(n.id, s),
+    tag: TAGS[s]?.[n.id],
   }));
   const links: SceneLink[] = LINKS.map(([from, to]) => ({
     from,
@@ -131,40 +137,63 @@ export function MPLSScene() {
     state: linkState(`${from}-${to}`, s),
   }));
 
-  const blast = s === 4 || s === 5;
+  // ——— Failure propagates spatially instead of flashing on. ———
+  const congestion = useTransform(t, [2, 3], [0, 1]);
+  const prediction = useTransform(t, [2.6, 3.6], [0, 1]);
+  // Grows out of PE-1, holds through recovery, then settles to a quiet
+  // residual presence — the network breathes again, the ring doesn't vanish.
+  const blastO = useTransform(t, [3.7, 4.3, 5.35, 5.95], [0, 1, 1, 0.55]);
+  const blastS = useTransform(t, [3.7, 4.3, 5.35, 5.95], [0.3, 1, 1, 0.92]);
+  const backupDraw = useTransform(t, [4.55, 5.3], [0, 1]);
+
+  const traces: SceneTrace[] = reduce
+    ? []
+    : [
+        { from: "pe1", to: "b", kind: "pulse", tone: "degraded", progress: congestion },
+        { from: "tel", to: "lgbm", kind: "pulse", tone: "signal", progress: prediction },
+        { from: "pe1", to: "pe2", kind: "grow", tone: "verified", progress: backupDraw },
+        { from: "pe2", to: "b", kind: "grow", tone: "verified", progress: backupDraw },
+      ];
+
+  // ——— Scene framing: continuous, not boolean-triggered. ———
+  const introO = useTransform(p, [0.015, 0.055], [1, 0]);
+  const introY = useTransform(p, [0.015, 0.055], ["0vh", "-4vh"]);
+  const graphO = useTransform(p, [0.02, 0.075], [0.32, 1]);
+  const captionO = useBand(p, 0.04, 0.08);
+  const captionPos = useTransform(t, (v) => smoothSteps(v, 0.35));
+  const titleO = useBand(t, 5.55, 5.95);
+  const titleY = useTransform(t, [5.55, 5.95], [24, 0]);
+  const titlePE = useTransform(titleO, (o) => (o > 0.5 ? "auto" : "none"));
+  const bgY = useTransform(p, [0, 1], reduce ? ["0vh", "0vh"] : ["4vh", "-4vh"]);
 
   return (
     <section id="projects" ref={ref} className="relative h-[560vh]">
       <div className="sticky top-0 h-[100svh] overflow-hidden">
-        <span
+        <motion.span
           aria-hidden="true"
+          style={{ y: bgY }}
           className="font-display pointer-events-none absolute -right-[3vw] -bottom-[5vw] text-[30vw] leading-none font-bold tracking-tighter text-system/[0.07] select-none"
         >
           MPLS
-        </span>
+        </motion.span>
 
         <motion.div
-          initial={false}
-          animate={{ opacity: s < 0 ? 0.3 : 1 }}
-          transition={{ duration: 0.6 }}
+          style={{ opacity: graphO }}
           className="absolute inset-x-6 top-[12%] bottom-[36%] lg:inset-x-[6vw] lg:top-[18%] lg:bottom-[20%]"
         >
-          {/* Blast radius: grows out of PE-1 once NetworkX runs. */}
+          {/* Blast radius: propagates out of PE-1 once NetworkX runs, then
+              settles back — restrained, not a success flourish. */}
           <motion.div
             aria-hidden="true"
-            initial={false}
-            animate={{ opacity: blast ? 1 : 0, scale: blast ? 1 : 0.2 }}
-            transition={{ type: "spring", stiffness: 70, damping: 16 }}
+            style={{ opacity: blastO, scale: blastS }}
             className="absolute top-[34%] left-[62%] size-[46vw] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-border bg-accent-soft/40 lg:top-[58%] lg:left-[36%] lg:size-[34vh]"
           />
-          <SceneGraph nodes={nodes} links={links} />
+          <SceneGraph nodes={nodes} links={links} traces={traces} />
         </motion.div>
 
         <motion.div
-          initial={false}
-          animate={{ opacity: s < 0 ? 1 : 0, y: s < 0 ? 0 : -24 }}
-          transition={{ type: "spring", stiffness: 90, damping: 20 }}
-          className="pointer-events-none absolute bottom-[8%] left-6 max-w-md lg:left-[6vw]"
+          style={{ opacity: introO, y: introY }}
+          className="pointer-events-none absolute bottom-8 left-6 max-w-md lg:left-[6vw]"
         >
           <span className="font-mono text-[11px] tracking-[0.18em] text-system">
             02 / SYSTEMS
@@ -179,26 +208,23 @@ export function MPLSScene() {
           </p>
         </motion.div>
 
-        <div className={cn("absolute right-6 bottom-8 left-6 transition-opacity duration-500 lg:right-auto lg:bottom-[8%] lg:left-[6vw] lg:max-w-lg", s < 0 && "opacity-0", s >= 5 && "max-lg:opacity-0")}>
-          <span className="font-mono text-[10px] tracking-[0.14em] text-muted-2">
-            STATE {String(Math.max(s, 0) + 1).padStart(2, "0")} / 06 · ILLUSTRATIVE,
-            MODELED ON THE PROJECT&rsquo;S FAULT-INJECTION DEMOS
-          </span>
-          <p aria-hidden="true" className="mt-2 text-sm leading-relaxed text-foreground/90 lg:text-base">
-            {s >= 0 ? STAGES[s] : " "}
-          </p>
-          <ol className="sr-only">
-            {STAGES.map((st) => (
-              <li key={st}>{st}</li>
-            ))}
-          </ol>
-        </div>
+        <motion.div
+          style={{ opacity: captionO }}
+          className="absolute right-6 bottom-8 left-6 lg:right-auto lg:bottom-[8%] lg:left-[6vw] lg:max-w-lg"
+        >
+          <div className={cn("transition-opacity duration-700 ease-settle", s >= 5 && "max-lg:opacity-0")}>
+            <CaptionReel
+              items={STAGES}
+              pos={captionPos}
+              note="ILLUSTRATIVE, MODELED ON THE PROJECT’S FAULT-INJECTION DEMOS"
+              minHeightClass="min-h-[5.25rem] lg:min-h-[3.5rem]"
+            />
+          </div>
+        </motion.div>
 
         <motion.div
-          initial={false}
-          animate={{ opacity: s >= 5 ? 1 : 0, y: s >= 5 ? 0 : 30 }}
-          transition={{ type: "spring", stiffness: 80, damping: 18 }}
-          className="absolute right-6 bottom-8 left-6 has-[:focus-visible]:!opacity-100 lg:right-[6vw] lg:bottom-[7%] lg:left-auto lg:max-w-sm lg:text-right"
+          style={{ opacity: titleO, y: titleY, pointerEvents: titlePE }}
+          className="absolute right-6 bottom-8 left-6 has-[:focus-visible]:!pointer-events-auto has-[:focus-visible]:!opacity-100 lg:right-[6vw] lg:bottom-[7%] lg:left-auto lg:max-w-sm lg:text-right"
         >
           <h2 className="font-display text-3xl leading-[0.95] font-bold text-foreground lg:text-5xl">
             MPLS
@@ -211,20 +237,20 @@ export function MPLSScene() {
           <div className="mt-4 flex flex-col items-start gap-2 text-sm lg:items-end">
             <Link
               href={`/projects/${mpls.slug}`}
-              className="group inline-flex items-center gap-1.5 border-b border-system/40 pb-0.5 text-foreground transition-colors hover:border-system"
+              className="group inline-flex items-center gap-1.5 border-b border-system/40 pb-0.5 text-foreground transition-colors duration-300 ease-settle hover:border-system"
             >
               Explore the system
-              <ArrowUpRight className="size-4 text-system transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              <ArrowUpRight className="size-4 text-system transition-transform duration-300 ease-settle group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Link>
             {mpls.links.repo ? (
               <a
                 href={mpls.links.repo}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group inline-flex items-center gap-1.5 font-mono text-[11px] tracking-[0.12em] text-muted transition-colors hover:text-foreground"
+                className="group inline-flex items-center gap-1.5 font-mono text-[11px] tracking-[0.12em] text-muted transition-colors duration-300 ease-settle hover:text-foreground"
               >
                 SOURCE
-                <ArrowUpRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                <ArrowUpRight className="size-3.5 transition-transform duration-300 ease-settle group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </a>
             ) : null}
           </div>

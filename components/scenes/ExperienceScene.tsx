@@ -2,9 +2,11 @@
 
 import { useRef } from "react";
 import type React from "react";
-import { motion, useScroll, useTransform, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { experience } from "@/data/experience";
 import { cn } from "@/lib/utils";
+import { MEDIUM } from "@/lib/motion";
+import { useSceneProgress } from "@/lib/scroll";
 
 /**
  * Experience as a signal path: the line is drawn by scroll position (not a
@@ -13,11 +15,7 @@ import { cn } from "@/lib/utils";
 export function ExperienceScene() {
   const ref = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start 70%", "end 60%"],
-  });
-  const scaleY = useTransform(scrollYProgress, [0, 1], [0, 1]);
+  const scaleY = useSceneProgress(ref, ["start 70%", "end 60%"]);
 
   return (
     <section
@@ -41,10 +39,10 @@ export function ExperienceScene() {
           {experience.map((item, i) => (
             <motion.li
               key={item.org}
-              initial={reduce ? false : { opacity: 0, x: 40 }}
+              initial={reduce ? false : { opacity: 0, x: 28 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-20% 0px" }}
-              transition={{ type: "spring", stiffness: 80, damping: 18, delay: i * 0.05 }}
+              transition={{ ...MEDIUM, delay: i * 0.05 }}
               className="relative pl-10"
             >
               <span

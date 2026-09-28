@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from "motion/react";
 import { findings } from "@/data/findings";
 import { cn } from "@/lib/utils";
+import { SLOW } from "@/lib/motion";
 
 /**
  * The one rust-colored scene. Each finding enters from an alternating side
@@ -35,10 +36,10 @@ export function FindingsScene() {
             return (
               <motion.article
                 key={f.id}
-                initial={reduce ? false : { opacity: 0, x: fromRight ? 120 : -120 }}
+                initial={reduce ? false : { opacity: 0, x: fromRight ? 90 : -90 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: "-15% 0px" }}
-                transition={{ type: "spring", stiffness: 60, damping: 18, mass: 1.1 }}
+                transition={SLOW}
                 className={cn(
                   "relative max-w-3xl",
                   fromRight && "md:ml-auto md:text-right",

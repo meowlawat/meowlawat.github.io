@@ -7,7 +7,7 @@ import { ArrowUpRight } from "lucide-react";
 import { research } from "@/data/research";
 import { Reveal } from "@/components/ui/Reveal";
 import { cn } from "@/lib/utils";
-import { SPRING_SOFT } from "@/lib/motion";
+import { FAST, MEDIUM } from "@/lib/motion";
 
 const metering = research.find((r) => r.slug === "token-accounting-integrity-llm-metering")!;
 const lstm = research.find((r) => r.slug === "lstm-password-guessing-argon2id")!;
@@ -75,13 +75,13 @@ function LeakageExperiment() {
             <motion.div
               className="h-3 rounded-full bg-system"
               animate={{ width: `${100 - pct}%` }}
-              transition={SPRING_SOFT}
+              transition={MEDIUM}
             />
           </div>
         </div>
       </div>
       <p className="mt-4 font-display text-5xl font-bold text-foreground tabular-nums md:text-6xl">
-        <motion.span key={which} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+        <motion.span key={which} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={FAST}>
           {LEAK[which].value}
         </motion.span>
       </p>
@@ -135,8 +135,8 @@ function PasswordExperiment() {
               left: `${((c % COLS) + 0.5) * (100 / COLS)}%`,
               top: `${(Math.floor(c / COLS) + 0.5) * (100 / ROWS)}%`,
             }}
-            animate={{ scale: hover ? 2.4 : 1 }}
-            transition={SPRING_SOFT}
+            animate={{ scale: hover ? 1.9 : 1 }}
+            transition={FAST}
           />
         ))}
       </div>

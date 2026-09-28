@@ -7,6 +7,7 @@ import { education } from "@/data/education";
 import { achievements } from "@/data/achievements";
 import { research } from "@/data/research";
 import { cn } from "@/lib/utils";
+import { FAST, UI } from "@/lib/motion";
 
 const group = (name: string) => skills.find((g) => g.category === name)?.items ?? [];
 
@@ -72,7 +73,7 @@ export function IdentityScene() {
               >
                 <motion.span
                   animate={{ opacity: dim ? 0.18 : 1, x: active === w.key ? 12 : 0 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 24 }}
+                  transition={FAST}
                   className={cn(
                     "font-display block text-[clamp(2.75rem,8vw,7rem)] leading-[0.88] font-bold tracking-tighter uppercase transition-colors duration-300",
                     active === w.key ? "text-accent" : "text-foreground",
@@ -87,7 +88,7 @@ export function IdentityScene() {
               </button>
               <motion.ul
                 animate={{ opacity: dim ? 0.12 : active === w.key ? 1 : 0.55 }}
-                transition={{ duration: 0.3 }}
+                transition={UI}
                 className="mt-4 flex max-w-xl flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] tracking-[0.06em] text-muted"
               >
                 {w.facts.map((f) => (
