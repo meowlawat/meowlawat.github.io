@@ -1,30 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type React from "react";
 import { motion } from "motion/react";
+import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SPRING_SNAPPY } from "@/lib/motion";
-import { site } from "@/data/site";
 
-// Contact is pinned for 240vh, and its text only resolves past the
-// midpoint of that track (ContactScene's own "system quiets, then
-// resolves" narrative). Arriving by continuous scroll, that quieting is
-// the point. Arriving by a direct click or a shared link, it's a wall
-// between the visitor and the one thing they came for — so a jump here
-// lands past the resolve point instead of at the section's top.
-function jumpToContact(behavior: ScrollBehavior) {
-  const el = document.getElementById("contact");
-  if (!el) return;
-  const top = el.getBoundingClientRect().top + window.scrollY;
-  window.scrollTo({ top: top + el.offsetHeight * 0.64, behavior });
-}
-
+// Most scenes are pinned, multi-screen scroll tracks whose correct initial
+// state *is* their top (the narrative's deliberate start — intro visible,
+// nothing yet reached). Contact is the exception: it's a destination, not
+// a narrative, and its "system quiets" text only resolves past the
+// midpoint of its own track — so a direct jump there lands past that
+// point instead of at the top, while everything else lands at zero.
 const SCENES = [
-  { href: "#research", index: "01", label: "Research" },
-  { href: "#projects", index: "02", label: "Systems" },
-  { href: "#findings", index: "03", label: "Findings" },
-  { href: "#about", index: "04", label: "Identity" },
-  { href: "#contact", index: "05", label: "Contact" },
+  { id: "research", href: "#research", index: "01", label: "Research", landAt: 0 },
+  { id: "projects", href: "#projects", index: "02", label: "Systems", landAt: 0 },
+  { id: "findings", href: "#findings", index: "03", label: "Findings", landAt: 0 },
+  { id: "about", href: "#about", index: "04", label: "Identity", landAt: 0 },
+  { id: "contact", href: "#contact", index: "05", label: "Contact", landAt: 0.64 },
 ];
 
 // Scenes without their own index entry count toward the nearest one.
@@ -38,9 +32,25 @@ const SECTION_TO_SCENE: Record<string, string> = {
   contact: "#contact",
 };
 
+function reducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+// One jump for every destination: smooth in motion (respecting reduced
+// motion), instant in intent — no scrolling through what's in between.
+function jumpTo(id: string, landAt: number, behavior: ScrollBehavior) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const top = el.getBoundingClientRect().top + window.scrollY;
+  window.scrollTo({ top: top + el.offsetHeight * landAt, behavior });
+}
+
 /**
- * A spatial index rather than a documentation navbar: five scene numbers,
- * and a signal dot that travels to whichever scene you're in.
+ * A spatial index rather than a documentation navbar: five scene numbers
+ * with a signal dot that travels to whichever scene you're in, plus a
+ * standalone Contact shortcut — the one destination a visitor might want
+ * without reading the rest of the site first. Scroll is still how you
+ * explore; this is how you jump.
  */
 export function Navigation() {
   const [active, setActive] = useState<string | null>(null);
@@ -51,7 +61,9 @@ export function Navigation() {
   // top before React mounts. Correct it once, without animating (the
   // visitor never saw the top position to begin with).
   useEffect(() => {
-    if (window.location.hash === "#contact") jumpToContact("auto");
+    const hash = window.location.hash;
+    const scene = SCENES.find((s) => s.href === hash);
+    if (scene && scene.landAt > 0) jumpTo(scene.id, scene.landAt, "auto");
   }, []);
 
   useEffect(() => {
@@ -75,6 +87,16 @@ export function Navigation() {
     };
   }, []);
 
+  function go(scene: (typeof SCENES)[number]) {
+    return (e: React.MouseEvent) => {
+      e.preventDefault();
+      jumpTo(scene.id, scene.landAt, reducedMotion() ? "auto" : "smooth");
+      window.history.pushState(null, "", scene.href);
+    };
+  }
+
+  const contact = SCENES[4];
+
   return (
     <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex items-start justify-between px-6 pt-5 md:px-[3vw]">
       <a
@@ -85,14 +107,6 @@ export function Navigation() {
       </a>
 
       <div className="pointer-events-auto flex items-center gap-4">
-        {/* Reachable from anywhere, no scrolling required — the direct
-            answer to "where's your contact info," not a fifth scene away. */}
-        <a
-          href={`mailto:${site.email}`}
-          className="hidden font-mono text-[11px] tracking-[0.14em] text-muted-2 uppercase transition-colors hover:text-foreground sm:inline-block"
-        >
-          Email
-        </a>
         <nav aria-label="Scenes">
           <ol className="flex items-center gap-1 rounded-full border border-border bg-background/60 px-2 py-1.5 backdrop-blur-md">
             {SCENES.map((s) => {
@@ -104,16 +118,7 @@ export function Navigation() {
                     href={s.href}
                     aria-current={isActive ? "location" : undefined}
                     aria-label={`${s.index} ${s.label}`}
-                    onClick={
-                      s.href === "#contact"
-                        ? (e) => {
-                            e.preventDefault();
-                            const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-                            jumpToContact(reduce ? "auto" : "smooth");
-                            window.history.pushState(null, "", "#contact");
-                          }
-                        : undefined
-                    }
+                    onClick={go(s)}
                     onMouseEnter={() => setHovered(s.href)}
                     onMouseLeave={() => setHovered(null)}
                     onFocus={() => setHovered(s.href)}
@@ -145,6 +150,19 @@ export function Navigation() {
             })}
           </ol>
         </nav>
+
+        {/* Reachable from anywhere, no scrolling required — the direct
+            answer to "where's your contact info," not a fifth scene away.
+            Lands on the same contact scene the index's 05 does; it's a
+            shortcut to that destination, not a second source of it. */}
+        <a
+          href={contact.href}
+          onClick={go(contact)}
+          className="group hidden items-center gap-1 font-mono text-[11px] tracking-[0.12em] text-muted-2 uppercase transition-colors hover:text-foreground sm:inline-flex"
+        >
+          Contact
+          <ArrowUpRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        </a>
       </div>
     </header>
   );
