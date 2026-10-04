@@ -7,8 +7,8 @@ export function Footer() {
       <Container className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-medium text-foreground">{site.name}</p>
-          <p className="font-mono text-xs text-muted-2">
-            Research · Systems · Security · ML
+          <p className="mt-1 text-xs text-muted-2">
+            {site.location} · © {new Date().getFullYear()}
           </p>
         </div>
 
@@ -17,7 +17,7 @@ export function Footer() {
             href={site.github}
             target="_blank"
             rel="noopener noreferrer"
-            className="transition-colors hover:text-foreground"
+            className="transition-colors duration-300 ease-settle hover:text-foreground"
           >
             GitHub
           </a>
@@ -25,7 +25,7 @@ export function Footer() {
             href={site.linkedin}
             target="_blank"
             rel="noopener noreferrer"
-            className="transition-colors hover:text-foreground"
+            className="transition-colors duration-300 ease-settle hover:text-foreground"
           >
             LinkedIn
           </a>
@@ -33,15 +33,13 @@ export function Footer() {
             href={site.orcid}
             target="_blank"
             rel="noopener noreferrer"
-            className="transition-colors hover:text-foreground"
+            className="transition-colors duration-300 ease-settle hover:text-foreground"
           >
             ORCID
           </a>
         </div>
 
-        <p className="font-mono text-xs text-muted-2">
-          © {new Date().getFullYear()} {site.name}
-        </p>
+        <p className="text-xs text-muted-2">Always interested in interesting problems.</p>
       </Container>
     </footer>
   );
