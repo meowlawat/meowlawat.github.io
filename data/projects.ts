@@ -6,6 +6,9 @@ export const projects: Project[] = [
     title: "MPLS Predictive Copilot",
     tagline: "Air-Gapped Autonomous NOC System",
     category: "Systems / Networking / Applied ML",
+    // Sourced from the repo's creation date (github.com/meowlawat/mpls-copilot,
+    // created 2026-06-26) — not tracked separately elsewhere.
+    year: "2026",
     description:
       "A 7-module air-gapped NOC pipeline combining Containerlab MPLS simulation, Prometheus telemetry, LightGBM impact prediction, NetworkX blast-radius analysis, and a local LLM copilot — zero outbound dependency.",
     stack: [

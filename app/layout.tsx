@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
 import { MotionConfig } from "motion/react";
 import { Navigation } from "@/components/navigation/Navigation";
+import { CommandPalette } from "@/components/navigation/CommandPalette";
 import { Footer } from "@/components/navigation/Footer";
 import { site } from "@/data/site";
 import "./globals.css";
@@ -91,6 +92,7 @@ export default function RootLayout({
         />
         <MotionConfig reducedMotion="user">
           <Navigation />
+          <CommandPalette />
           <main className="flex-1 overflow-x-clip">{children}</main>
           <Footer />
         </MotionConfig>

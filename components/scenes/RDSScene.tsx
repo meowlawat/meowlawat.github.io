@@ -273,6 +273,9 @@ export function RDSScene() {
           <p className="mt-1 font-mono text-[11px] tracking-[0.12em] text-muted">
             {rds.status.toUpperCase()} · {rds.publisher?.toUpperCase()}
           </p>
+          <p className="mt-2 font-mono text-[10px] tracking-[0.1em] text-muted-2 uppercase">
+            {rds.technologies.join(" · ")}
+          </p>
           <Link
             href={`/research/${rds.slug}`}
             className="group mt-4 inline-flex items-center gap-1.5 border-b border-accent/40 pb-0.5 text-sm text-foreground transition-colors duration-300 ease-settle hover:border-accent"

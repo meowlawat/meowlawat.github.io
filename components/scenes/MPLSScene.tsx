@@ -161,8 +161,14 @@ export function MPLSScene() {
   const graphO = useTransform(p, [0.02, 0.075], [0.32, 1]);
   const captionO = useBand(p, 0.04, 0.08);
   const captionPos = useTransform(t, (v) => smoothSteps(v, 0.35));
-  const titleO = useBand(t, 5.55, 5.95);
-  const titleY = useTransform(t, [5.55, 5.95], [24, 0]);
+  // Rises once the sequence resolves (t 5.55→5.95, i.e. local progress
+  // 0.783→0.833), then recedes before the pinned stage releases — a sticky
+  // block's bottom-anchored content otherwise scrolls up through the fixed
+  // header for a few frames as it unsticks. Receding first keeps that
+  // handoff a fade, not a collision, and still leaves a wide (~390px of
+  // scroll) fully-visible, fully-clickable window for the case-study link.
+  const titleO = useTransform(p, [0.783, 0.833, 0.93, 0.965], [0, 1, 1, 0]);
+  const titleY = useTransform(p, [0.783, 0.833], [24, 0]);
   const titlePE = useTransform(titleO, (o) => (o > 0.5 ? "auto" : "none"));
   const bgY = useTransform(p, [0, 1], reduce ? ["0vh", "0vh"] : ["4vh", "-4vh"]);
 
@@ -226,7 +232,12 @@ export function MPLSScene() {
           style={{ opacity: titleO, y: titleY, pointerEvents: titlePE }}
           className="absolute right-6 bottom-8 left-6 has-[:focus-visible]:!pointer-events-auto has-[:focus-visible]:!opacity-100 lg:right-[6vw] lg:bottom-[7%] lg:left-auto lg:max-w-sm lg:text-right"
         >
-          <h2 className="font-display text-3xl leading-[0.95] font-bold text-foreground lg:text-5xl">
+          {mpls.year ? (
+            <span className="font-display block text-2xl leading-none font-bold text-system lg:text-4xl">
+              {mpls.year}
+            </span>
+          ) : null}
+          <h2 className="font-display mt-1 text-3xl leading-[0.95] font-bold text-foreground lg:text-5xl">
             MPLS
             <br />
             <span className="text-system">Predictive</span>
@@ -234,6 +245,9 @@ export function MPLSScene() {
             Copilot
           </h2>
           <p className="mt-2 text-sm text-muted">{mpls.tagline}</p>
+          <p className="mt-2 font-mono text-[10px] tracking-[0.1em] text-muted-2 uppercase">
+            {mpls.stack.slice(0, 4).join(" · ")}
+          </p>
           <div className="mt-4 flex flex-col items-start gap-2 text-sm lg:items-end">
             <Link
               href={`/projects/${mpls.slug}`}

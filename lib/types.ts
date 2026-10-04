@@ -74,6 +74,8 @@ export interface Project {
   tagline: string;
   category: string;
   description: string;
+  /** Sourced from the repo's own creation date — never invented. */
+  year?: string;
   stack: string[];
   metrics?: Metric[];
   architecture?: Architecture;

@@ -6,51 +6,14 @@ import { motion } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SPRING_SNAPPY } from "@/lib/motion";
-
-// Most scenes are pinned, multi-screen scroll tracks whose correct initial
-// state *is* their top (the narrative's deliberate start — intro visible,
-// nothing yet reached). Contact is the exception: it's a destination, not
-// a narrative, and its "system quiets" text only resolves past the
-// midpoint of its own track — so a direct jump there lands past that
-// point instead of at the top, while everything else lands at zero.
-const SCENES = [
-  { id: "research", href: "#research", index: "01", label: "Research", landAt: 0 },
-  { id: "projects", href: "#projects", index: "02", label: "Systems", landAt: 0 },
-  { id: "findings", href: "#findings", index: "03", label: "Findings", landAt: 0 },
-  { id: "about", href: "#about", index: "04", label: "Identity", landAt: 0 },
-  { id: "contact", href: "#contact", index: "05", label: "Contact", landAt: 0.64 },
-];
-
-// Scenes without their own index entry count toward the nearest one.
-const SECTION_TO_SCENE: Record<string, string> = {
-  research: "#research",
-  experiments: "#research",
-  projects: "#projects",
-  findings: "#findings",
-  about: "#about",
-  experience: "#about",
-  contact: "#contact",
-};
-
-function reducedMotion() {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
-// One jump for every destination: smooth in motion (respecting reduced
-// motion), instant in intent — no scrolling through what's in between.
-function jumpTo(id: string, landAt: number, behavior: ScrollBehavior) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const top = el.getBoundingClientRect().top + window.scrollY;
-  window.scrollTo({ top: top + el.offsetHeight * landAt, behavior });
-}
+import { SCENES, SECTION_TO_SCENE, goToScene, jumpTo } from "@/lib/nav";
 
 /**
  * A spatial index rather than a documentation navbar: five scene numbers
- * with a signal dot that travels to whichever scene you're in, plus a
- * standalone Contact shortcut — the one destination a visitor might want
- * without reading the rest of the site first. Scroll is still how you
- * explore; this is how you jump.
+ * with a signal dot that travels to whichever scene you're in, a standalone
+ * Contact shortcut, and a ⌘K hint that opens the command palette
+ * (CommandPalette.tsx, which shares this same scene model). Scroll is still
+ * how you explore the site; these are how you jump.
  */
 export function Navigation() {
   const [active, setActive] = useState<string | null>(null);
@@ -90,8 +53,7 @@ export function Navigation() {
   function go(scene: (typeof SCENES)[number]) {
     return (e: React.MouseEvent) => {
       e.preventDefault();
-      jumpTo(scene.id, scene.landAt, reducedMotion() ? "auto" : "smooth");
-      window.history.pushState(null, "", scene.href);
+      goToScene(scene);
     };
   }
 
@@ -107,6 +69,19 @@ export function Navigation() {
       </a>
 
       <div className="pointer-events-auto flex items-center gap-4">
+        {/* Opens the command palette — same destinations as the index
+            below, reached by keyboard or by click. Desktop only: a
+            keyboard-shortcut affordance has no good mobile equivalent,
+            and the pill below already reaches everything on touch. */}
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))}
+          aria-label="Open command palette"
+          className="hidden items-center gap-1 rounded-full border border-border px-2 py-1 font-mono text-[10px] tracking-[0.1em] text-muted-2 transition-colors duration-300 ease-settle hover:border-border-strong hover:text-foreground sm:inline-flex"
+        >
+          <span aria-hidden="true">⌘</span>K
+        </button>
+
         <nav aria-label="Scenes">
           <ol className="flex items-center gap-1 rounded-full border border-border bg-background/60 px-2 py-1.5 backdrop-blur-md">
             {SCENES.map((s) => {
@@ -124,7 +99,7 @@ export function Navigation() {
                     onFocus={() => setHovered(s.href)}
                     onBlur={() => setHovered(null)}
                     className={cn(
-                      "relative flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[11px] transition-colors",
+                      "relative flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[11px] transition-colors duration-300 ease-settle",
                       isActive ? "text-foreground" : "text-muted-2 hover:text-foreground",
                     )}
                   >
@@ -158,10 +133,10 @@ export function Navigation() {
         <a
           href={contact.href}
           onClick={go(contact)}
-          className="group hidden items-center gap-1 font-mono text-[11px] tracking-[0.12em] text-muted-2 uppercase transition-colors hover:text-foreground sm:inline-flex"
+          className="group hidden items-center gap-1 font-mono text-[11px] tracking-[0.12em] text-muted-2 uppercase transition-colors duration-300 ease-settle hover:text-foreground sm:inline-flex"
         >
           Contact
-          <ArrowUpRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          <ArrowUpRight className="size-3.5 transition-transform duration-300 ease-settle group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </a>
       </div>
     </header>
