@@ -30,12 +30,6 @@
   --alert-foreground: #f4e5df;
   --alert-soft: #150e0d;
   --alert-border: rgba(180, 119, 103, 0.35);
-
-  /* The homepage's one accent (warm rust — same hue as --alert, reused
-     rather than duplicated). Detail pages keep the fuller palette above;
-     those colors are functional state markers there, not decorative. */
-  --home-accent: #b47767;
-  --home-accent-soft: rgba(180, 119, 103, 0.12);
 }
 
 @theme inline {
@@ -63,8 +57,6 @@
   --color-alert-foreground: var(--alert-foreground);
   --color-alert-soft: var(--alert-soft);
   --color-alert-border: var(--alert-border);
-  --color-home-accent: var(--home-accent);
-  --color-home-accent-soft: var(--home-accent-soft);
   --font-sans: var(--font-geist-sans);
   --font-display: var(--font-space-grotesk);
   --font-mono: var(--font-geist-mono);

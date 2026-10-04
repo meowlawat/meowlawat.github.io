@@ -6,11 +6,11 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FAST } from "@/lib/motion";
-import { SECTIONS, goTo, type SectionLink } from "@/lib/nav";
+import { SCENES, goToScene, type SceneDestination } from "@/lib/nav";
 import { site } from "@/data/site";
 
 type Item =
-  | { kind: "section"; section: SectionLink }
+  | { kind: "scene"; scene: SceneDestination }
   | { kind: "link"; label: string; href: string; external: boolean };
 
 const LINKS: Item[] = [
@@ -20,20 +20,21 @@ const LINKS: Item[] = [
   { kind: "link", label: "ORCID", href: site.orcid, external: true },
 ];
 
-const ITEMS: Item[] = [...SECTIONS.map((section): Item => ({ kind: "section", section })), ...LINKS];
+const ITEMS: Item[] = [...SCENES.map((scene): Item => ({ kind: "scene", scene })), ...LINKS];
 
 function itemLabel(item: Item): string {
-  return item.kind === "section" ? item.section.label : item.label;
+  return item.kind === "scene" ? item.scene.label : item.label;
 }
 
 function itemTag(item: Item): string {
-  return item.kind === "section" ? "GO" : "LINK";
+  return item.kind === "scene" ? item.scene.index : "LINK";
 }
 
 /**
- * ⌘K / Ctrl+K: a keyboard-first way to reach the same three sections and
- * contact links the header already goes to — not a second source of them.
- * Navigate-only, no content search: this is a portfolio, not a docs site.
+ * ⌘K / Ctrl+K: a keyboard-first way to reach the same five scenes and
+ * contact links the header's index and Contact shortcut already go to —
+ * not a second source of them. Navigate-only, no content search: this is
+ * a portfolio, not a docs site.
  */
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
@@ -59,8 +60,8 @@ export function CommandPalette() {
   }
 
   function activate(item: Item) {
-    if (item.kind === "section") {
-      goTo(item.section.id);
+    if (item.kind === "scene") {
+      goToScene(item.scene);
     } else if (item.external) {
       window.open(item.href, "_blank", "noopener,noreferrer");
     } else {
@@ -164,7 +165,7 @@ export function CommandPalette() {
                       onMouseEnter={() => setSelected(i)}
                       className={cn(
                         "flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left font-mono text-[13px] transition-colors duration-150",
-                        i === selected ? "bg-home-accent-soft text-foreground" : "text-muted hover:text-foreground",
+                        i === selected ? "bg-accent-soft text-foreground" : "text-muted hover:text-foreground",
                       )}
                     >
                       <span className="flex items-center gap-3">
