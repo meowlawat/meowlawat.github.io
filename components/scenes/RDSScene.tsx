@@ -1,24 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import {
+  animate,
   motion,
-  useMotionValueEvent,
+  useMotionValue,
   useReducedMotion,
   useTransform,
 } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
 import { SceneGraph, type SceneNode, type SceneLink } from "@/components/scenes/SceneGraph";
 import { CaptionReel } from "@/components/scenes/CaptionReel";
+import { Reveal } from "@/components/ui/Reveal";
 import { research } from "@/data/research";
-import { smoothSteps, useBand, useSceneProgress } from "@/lib/scroll";
+import { useBand, smoothSteps } from "@/lib/scroll";
+import { SLOW } from "@/lib/motion";
+import { cn } from "@/lib/utils";
 
 const rds = research.find((r) => r.slug === "runtime-data-shadowing")!;
 const metric = (label: string) => rds.metrics.find((m) => m.label === label);
 
-// Each stage is a sentence from the paper's own approach / threat model —
-// the scroll position chooses which one is true right now.
+// Each stage is a sentence from the paper's own approach / threat model.
 const STAGES = [
   "Patient records stay encrypted with AES-128-GCM outside the trusted boundary.",
   "Encrypted data enters an Intel SGX enclave. The host OS and hypervisor are treated as untrusted.",
@@ -35,47 +38,43 @@ const NOTES: Record<string, string> = {
   result: "Re-encrypted before it crosses back out of the enclave.",
 };
 
-// Desktop: a horizontal path across the stage. Mobile: a vertical path.
+// A horizontal path across the stage (desktop); vertical on mobile.
 const D_X = [10, 30, 50, 70, 90];
 const M_Y = [16, 33, 50, 67, 84];
+const ids = ["client", "encrypted", "enclave", "shadow", "result"];
 
-// Scroll → record position t ∈ [0, 4]: t = i means "at node i".
-const P0 = 0.1;
-const P1 = 0.82;
-const toT = (p: number) => Math.min(4, Math.max(0, ((p - P0) / (P1 - P0)) * 4));
-
+/**
+ * Click-driven, not scroll-driven: a bounded panel in normal page flow.
+ * Clicking a step (or the record itself) animates one continuous `t`
+ * value (0-4) to the target — the same transform chains that used to read
+ * scroll position now read this instead, so the record still visibly
+ * travels and transforms between states, just on a click, not a scroll.
+ * Scrolling past this section is always just scrolling.
+ */
 export function RDSScene() {
-  const ref = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
-  const [stage, setStage] = useState(-1);
+  const [stage, setStage] = useState(0);
+  const t = useMotionValue(0);
 
-  const p = useSceneProgress(ref);
-  const t = useTransform(p, toT);
-
-  // Node/link state is the only discrete thing here; it changes as the
-  // record *approaches* each node, and the change itself is a long ease.
-  useMotionValueEvent(p, "change", (v) => {
-    setStage(v < 0.06 ? -1 : Math.min(4, Math.floor(toT(v) + 0.35)));
-  });
+  useEffect(() => {
+    const controls = animate(t, stage, reduce ? { duration: 0 } : { ...SLOW, stiffness: 90, damping: 20 });
+    return () => controls.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage]);
 
   // ——— The record: one object, transformed along the way. ———
   const pdx = useTransform(t, [0, 1, 2, 3, 4], D_X);
   const pmy = useTransform(t, [0, 1, 2, 3, 4], M_Y);
-  const presence = useTransform(p, [0.06, 0.11, 0.8, 0.82], [0, 1, 1, 0]);
-  // Encrypted: dense, hatched, squared-off. Decrypted: an open ring.
   const hatch = useTransform(t, [0, 1.55, 1.95, 3.45, 3.85], [1, 1, 0, 0, 1]);
   const round = useTransform(t, [0, 1.6, 2, 3.4, 3.8], [0.18, 0.18, 1, 1, 0.18]);
-  // Compressed passing through the boundary membrane, expands inside it.
   const rs = useTransform(
     t,
     [0, 1.28, 1.43, 1.62, 2, 3.4, 3.8],
     [0.85, 0.85, 0.66, 0.92, 1.3, 1.3, 0.85],
   );
   const inside = useBand(t, 1.45, 1.8, 3.5, 3.8);
-  // Policy evaluation: a single ripple, scrubbed by scroll.
   const policyScale = useTransform(t, [2, 2.45], [1, 2.6]);
   const policyO = useTransform(t, [1.95, 2.05, 2.45], [0, 0.55, 0]);
-  // Shadow view: a cleaner projection lifts off the record.
   const ghostO = useBand(t, 2.55, 3.05, 3.45, 3.7);
   const ghostY = useTransform(t, [2.55, 3.05], [0, -16]);
   const latencyO = useBand(t, 0.1, 0.4, 3.2, 3.5);
@@ -89,20 +88,11 @@ export function RDSScene() {
   const epcS = useTransform(t, [1.75, 2.25], [0.9, 1]);
   const overheadO = useBand(t, 2.45, 2.8);
   const throughputO = useBand(t, 3.86, 4);
+  const titleO = useBand(t, 3.5, 3.9);
+  const titleY = useTransform(t, [3.5, 3.9], [16, 0]);
 
-  // ——— Scene framing. ———
-  const introO = useTransform(p, [0.02, 0.07], [1, 0]);
-  const introY = useTransform(p, [0.02, 0.07], ["0vh", "-4vh"]);
-  const graphO = useTransform(p, [0.03, 0.09], [0.35, 1]);
-  const captionO = useBand(p, 0.05, 0.09);
-  const captionPos = useTransform(t, (v) => smoothSteps(v + 0.35, 0.3));
-  const titleO = useBand(t, 3.55, 3.95);
-  const titleY = useTransform(t, [3.55, 3.95], [24, 0]);
-  const titlePE = useTransform(titleO, (o) => (o > 0.5 ? "auto" : "none"));
-  // Depth: the background word drifts slower than the stage.
-  const bgY = useTransform(p, [0, 1], reduce ? ["0vh", "0vh"] : ["5vh", "-5vh"]);
+  const captionPos = useTransform(t, (v) => smoothSteps(v, 0.3));
 
-  const ids = ["client", "encrypted", "enclave", "shadow", "result"];
   const nodes: SceneNode[] = rds.architecture!.nodes.map((n, i) => {
     const reached = stage >= i;
     const trusted = n.state === "verified";
@@ -133,22 +123,57 @@ export function RDSScene() {
   const epc = metric("Latency degradation");
 
   return (
-    <section id="research" ref={ref} className="relative h-[430vh]">
-      <div className="sticky top-0 h-[100svh] overflow-hidden">
-        {/* Background word — the scene's subject, at scale, at depth. */}
-        <motion.span
+    <section id="research" className="relative px-6 py-24 md:px-[6vw] md:py-32">
+      <Reveal>
+        <span className="font-mono text-[11px] tracking-[0.18em] text-accent">
+          02 / RESEARCH
+        </span>
+        <p className="font-display mt-3 text-3xl leading-tight font-bold text-foreground md:text-5xl">
+          Follow one
+          <br />
+          <span className="text-accent">medical record.</span>
+        </p>
+        <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">
+          Click a step to move the record through Runtime Data Shadowing — a trusted-execution
+          approach for sharing medical data under role-aware access control.
+        </p>
+      </Reveal>
+
+      {/* Step controls — the actual interaction, not a scroll position. */}
+      <div role="tablist" aria-label="Record state" className="mt-10 flex flex-wrap gap-2">
+        {STAGES.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            role="tab"
+            aria-selected={stage === i}
+            onClick={() => setStage(i)}
+            className={cn(
+              "rounded-full border px-3.5 py-1.5 font-mono text-[11px] tracking-[0.08em] transition-colors duration-300 ease-settle",
+              stage === i
+                ? "border-accent bg-accent-soft text-accent-foreground"
+                : "border-border-strong text-muted hover:text-foreground",
+            )}
+          >
+            {String(i + 1).padStart(2, "0")}
+          </button>
+        ))}
+      </div>
+
+      <div className="relative mt-6 h-[52vh] min-h-[22rem] rounded-2xl border border-border bg-surface/40 md:h-[46vh]">
+        {/* Background word — depth, not decoration. */}
+        <span
           aria-hidden="true"
-          style={{ y: bgY }}
-          className="font-display pointer-events-none absolute -bottom-[6vw] -left-[2vw] text-[34vw] leading-none font-bold tracking-tighter text-foreground/[0.035] select-none"
+          className="font-display pointer-events-none absolute -bottom-[6%] -left-[2%] text-[22vw] leading-none font-bold tracking-tighter text-foreground/[0.035] select-none md:text-[14vw]"
         >
           TEE
-        </motion.span>
+        </span>
 
         {/* Trusted boundary: a membrane the record has to pass through. */}
         <motion.div
           aria-hidden="true"
           style={{ opacity: boundaryO, scale: boundaryS }}
-          className="absolute top-[36%] left-[40%] hidden h-[27%] w-[38%] rounded-[3rem] border border-dashed border-verified-border lg:block"
+          className="absolute top-[30%] left-[38%] hidden h-[34%] w-[40%] rounded-[2.5rem] border border-dashed border-verified-border lg:block"
         >
           <span className="absolute -top-6 left-6 font-mono text-[10px] tracking-[0.14em] text-verified">
             TRUSTED BOUNDARY / SGX
@@ -167,7 +192,7 @@ export function RDSScene() {
         <motion.div
           aria-hidden="true"
           style={{ opacity: epcO, scale: epcS }}
-          className="absolute top-[49%] left-[50%] hidden size-[26vh] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-border lg:block"
+          className="absolute top-[47%] left-[50%] hidden size-[20vh] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-border lg:block"
         >
           <span className="absolute -right-2 bottom-0 translate-x-full font-mono text-[10px] leading-relaxed tracking-[0.1em] text-accent-foreground">
             128 MB EPC
@@ -176,10 +201,7 @@ export function RDSScene() {
           </span>
         </motion.div>
 
-        <motion.div
-          style={{ opacity: graphO }}
-          className="absolute inset-x-6 top-[12%] bottom-[32%] lg:inset-x-[6vw] lg:top-[16%] lg:bottom-[20%]"
-        >
+        <div className="absolute inset-x-6 top-[10%] bottom-[8%] md:inset-x-[5%] md:top-[14%] md:bottom-[14%]">
           <SceneGraph nodes={nodes} links={links} />
 
           {/* The record itself, carrying its latency with it. */}
@@ -193,10 +215,9 @@ export function RDSScene() {
                 "--round": round,
                 "--rs": rs,
                 "--inside": inside,
-                opacity: presence,
               } as unknown as CSSProperties
             }
-            className="pointer-events-none absolute top-[calc(var(--pmy)*1%)] left-[22%] z-20 lg:top-[52%] lg:left-[calc(var(--pdx)*1%)]"
+            className="pointer-events-none absolute top-[calc(var(--pmy)*1%)] left-[22%] z-20 md:top-[52%] md:left-[calc(var(--pdx)*1%)]"
           >
             <motion.span
               style={{ scale: policyScale, opacity: policyO }}
@@ -218,73 +239,41 @@ export function RDSScene() {
             <span className="absolute -top-[7px] -left-[7px] size-3.5 scale-[var(--rs)] rounded-[calc(var(--round)*50%)] border-[1.5px] border-verified opacity-[var(--inside)]" />
             <motion.span
               style={{ opacity: latencyO }}
-              className="absolute -top-2 right-4 text-right font-mono text-[11px] whitespace-nowrap text-accent-foreground lg:top-auto lg:right-auto lg:bottom-5 lg:left-0 lg:-translate-x-1/2 lg:text-left"
+              className="absolute -top-2 right-4 text-right font-mono text-[11px] whitespace-nowrap text-accent-foreground md:top-auto md:right-auto md:bottom-5 md:left-1/2 md:-translate-x-1/2 md:text-center"
             >
-              {metric("Mean query latency")?.value}
-              <br className="lg:hidden" /> / query
+              {metric("Mean query latency")?.value} / query
             </motion.span>
           </motion.div>
-        </motion.div>
-
-        {/* Intro: what you're about to watch. Drifts away as the record moves. */}
-        <motion.div
-          style={{ opacity: introO, y: introY }}
-          className="pointer-events-none absolute bottom-8 left-6 max-w-sm lg:top-[14%] lg:bottom-auto lg:left-[6vw]"
-        >
-          <span className="font-mono text-[11px] tracking-[0.18em] text-accent">
-            01 / RESEARCH
-          </span>
-          <p className="font-display mt-3 text-3xl leading-tight font-bold text-foreground lg:text-5xl">
-            Follow one
-            <br />
-            <span className="text-accent">medical record.</span>
-          </p>
-          <p className="mt-3 font-mono text-[11px] tracking-[0.12em] text-muted-2">
-            SCROLL TO MOVE IT THROUGH THE SYSTEM ↓
-          </p>
-        </motion.div>
-
-        {/* Live caption: the sentence that is true right now. On small
-            screens the title takes this slot at the end. */}
-        <motion.div
-          style={{ opacity: captionO }}
-          className="absolute right-6 bottom-8 left-6 lg:right-auto lg:bottom-[9%] lg:left-[6vw] lg:max-w-md"
-        >
-          <div
-            className={
-              "transition-opacity duration-700 ease-settle " + (stage >= 4 ? "max-lg:opacity-0" : "")
-            }
-          >
-            <CaptionReel items={STAGES} pos={captionPos} />
-          </div>
-        </motion.div>
-
-        {/* Resolution: the paper's identity settles in once you've seen it work. */}
-        <motion.div
-          style={{ opacity: titleO, y: titleY, pointerEvents: titlePE }}
-          className="absolute right-6 bottom-8 left-6 has-[:focus-visible]:!pointer-events-auto has-[:focus-visible]:!opacity-100 lg:top-[12%] lg:right-[6vw] lg:bottom-auto lg:left-auto lg:max-w-xl lg:text-right"
-        >
-          <span className="font-display block text-5xl leading-none font-bold text-accent lg:text-8xl">
-            {rds.year}
-          </span>
-          <h2 className="font-display mt-2 text-2xl leading-tight font-bold text-foreground lg:text-4xl">
-            {rds.title}
-          </h2>
-          <p className="mt-1 font-mono text-[11px] tracking-[0.12em] text-muted">
-            {rds.status.toUpperCase()} · {rds.publisher?.toUpperCase()}
-          </p>
-          <p className="mt-2 font-mono text-[10px] tracking-[0.1em] text-muted-2 uppercase">
-            {rds.technologies.join(" · ")}
-          </p>
-          <Link
-            href={`/research/${rds.slug}`}
-            className="group mt-4 inline-flex items-center gap-1.5 border-b border-accent/40 pb-0.5 text-sm text-foreground transition-colors duration-300 ease-settle hover:border-accent"
-          >
-            Read the case study
-            <ArrowUpRight className="size-4 text-accent transition-transform duration-300 ease-settle group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </Link>
-        </motion.div>
+        </div>
       </div>
+
+      {/* Live caption: the sentence that is true at the current step. */}
+      <div className="mt-6 max-w-2xl">
+        <CaptionReel items={STAGES} pos={captionPos} />
+      </div>
+
+      {/* Resolution: the paper's identity, once you've clicked through. */}
+      <motion.div style={{ opacity: titleO, y: titleY }} className="mt-10 max-w-xl">
+        <span className="font-display block text-4xl leading-none font-bold text-accent md:text-6xl">
+          {rds.year}
+        </span>
+        <h2 className="font-display mt-2 text-2xl leading-tight font-bold text-foreground md:text-3xl">
+          {rds.title}
+        </h2>
+        <p className="mt-1 font-mono text-[11px] tracking-[0.12em] text-muted">
+          {rds.status.toUpperCase()} · {rds.publisher?.toUpperCase()}
+        </p>
+        <p className="mt-2 font-mono text-[10px] tracking-[0.1em] text-muted-2 uppercase">
+          {rds.technologies.join(" · ")}
+        </p>
+        <Link
+          href={`/research/${rds.slug}`}
+          className="group mt-4 inline-flex items-center gap-1.5 border-b border-accent/40 pb-0.5 text-sm text-foreground transition-colors duration-300 ease-settle hover:border-accent"
+        >
+          Read the case study
+          <ArrowUpRight className="size-4 text-accent transition-transform duration-300 ease-settle group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        </Link>
+      </motion.div>
     </section>
   );
 }

@@ -1,4 +1,5 @@
 import { Hero } from "@/components/hero/Hero";
+import { EducationScene } from "@/components/scenes/EducationScene";
 import { RDSScene } from "@/components/scenes/RDSScene";
 import { ResearchExperiments } from "@/components/scenes/ResearchExperiments";
 import { MPLSScene } from "@/components/scenes/MPLSScene";
@@ -8,28 +9,29 @@ import { ExperienceScene } from "@/components/scenes/ExperienceScene";
 import { ContactScene } from "@/components/scenes/ContactScene";
 import { SignalThread } from "@/components/scenes/SignalThread";
 
-// Scene colors carry meaning: cobalt = signal, teal = system,
-// rust = security finding, sage = verified / resolved.
-const COBALT = "#7187b3";
-const TEAL = "#668b88";
-const RUST = "#b47767";
-const SAGE = "#9eaa7b";
+// Scene colors carry meaning: hoki = signal, waikawa gray = system,
+// toast = security finding, limed oak = verified / resolved.
+const HOKI = "#6580a4";
+const WAIKAWA = "#5f6891";
+const TOAST = "#9e7a61";
+const LIMED_OAK = "#a78452";
 
 export default function Home() {
   return (
     <>
       <Hero />
-      <SignalThread from={COBALT} to={COBALT} label="SIGNAL → RESEARCH" />
+      <EducationScene />
+      <SignalThread from={HOKI} to={HOKI} label="SIGNAL → RESEARCH" />
       <RDSScene />
       <ResearchExperiments />
-      <SignalThread from={COBALT} to={TEAL} label="SIGNAL → NETWORK" />
+      <SignalThread from={HOKI} to={WAIKAWA} label="SIGNAL → NETWORK" />
       <MPLSScene />
-      <SignalThread from={TEAL} to={RUST} label="SIGNAL → FIELD NOTES" />
+      <SignalThread from={WAIKAWA} to={TOAST} label="SIGNAL → FIELD NOTES" />
       <FindingsScene />
-      <SignalThread from={RUST} to={COBALT} label="SIGNAL → IDENTITY" />
+      <SignalThread from={TOAST} to={HOKI} label="SIGNAL → IDENTITY" />
       <IdentityScene />
       <ExperienceScene />
-      <SignalThread from={TEAL} to={SAGE} label="SIGNAL → RESOLVING" />
+      <SignalThread from={WAIKAWA} to={LIMED_OAK} label="SIGNAL → RESOLVING" />
       <ContactScene />
     </>
   );

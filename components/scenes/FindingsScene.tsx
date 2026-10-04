@@ -27,7 +27,7 @@ export function FindingsScene() {
       />
       <div className="relative">
         <span className="font-mono text-[11px] tracking-[0.18em] text-alert">
-          03 / SECURITY FINDINGS · FIELD NOTES
+          SECURITY FINDINGS · FIELD NOTES
         </span>
 
         <div className="mt-20 flex flex-col gap-28 md:gap-40">

@@ -6,7 +6,7 @@ import { motion } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SPRING_SNAPPY } from "@/lib/motion";
-import { SCENES, SECTION_TO_SCENE, goToScene, jumpTo } from "@/lib/nav";
+import { SCENES, SECTION_TO_SCENE, goToScene } from "@/lib/nav";
 
 /**
  * A spatial index rather than a documentation navbar: five scene numbers
@@ -18,16 +18,6 @@ import { SCENES, SECTION_TO_SCENE, goToScene, jumpTo } from "@/lib/nav";
 export function Navigation() {
   const [active, setActive] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
-
-  // A shared/bookmarked #contact link lands here the same instant, broken
-  // way a click would — the browser's own hash-jump goes to the section
-  // top before React mounts. Correct it once, without animating (the
-  // visitor never saw the top position to begin with).
-  useEffect(() => {
-    const hash = window.location.hash;
-    const scene = SCENES.find((s) => s.href === hash);
-    if (scene && scene.landAt > 0) jumpTo(scene.id, scene.landAt, "auto");
-  }, []);
 
   useEffect(() => {
     const els = Object.keys(SECTION_TO_SCENE)

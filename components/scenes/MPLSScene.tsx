@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
-import { motion, useMotionValueEvent, useReducedMotion, useTransform } from "motion/react";
+import { useEffect, useState } from "react";
+import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
 import {
   SceneGraph,
@@ -13,14 +13,14 @@ import {
   type SceneTrace,
 } from "@/components/scenes/SceneGraph";
 import { CaptionReel } from "@/components/scenes/CaptionReel";
+import { Reveal } from "@/components/ui/Reveal";
 import { projects } from "@/data/projects";
 import { cn } from "@/lib/utils";
-import { smoothSteps, useBand, useSceneProgress } from "@/lib/scroll";
+import { useBand, smoothSteps } from "@/lib/scroll";
+import { SLOW } from "@/lib/motion";
 
 const mpls = projects.find((p) => p.slug === "mpls-predictive-copilot")!;
 
-// Each caption restates a fact from the project's own architecture /
-// implementation notes; the sequence mirrors its fault-injection demos.
 const STAGES = [
   "Containerlab runs a 4-node MPLS topology — Branch-A, PE-1, PE-2, Branch-B. Traffic is flowing.",
   "Telegraf and Prometheus stream utilization, latency, jitter, packet loss, BGP flaps and OSPF changes.",
@@ -40,7 +40,6 @@ type Plane = {
   size?: number;
 };
 
-// Network plane (teal) below, analysis plane (cobalt) above.
 const PLANE: Plane[] = [
   { id: "a", label: "Branch-A", d: [9, 74], m: [78, 4], mSide: "left", note: "Customer edge site.", size: 20 },
   { id: "pe1", label: "PE-1", d: [36, 58], m: [62, 34], mSide: "left", note: "Provider edge router.", size: 24 },
@@ -108,40 +107,35 @@ const TAGS: Record<number, Record<string, string>> = {
   5: { pe2: "backup path active", op: "system recovered" },
 };
 
-// Scroll → sequence position t ∈ [0, 6): t = i means "state i is current".
-const P0 = 0.08;
-const P1 = 0.84;
-const toT = (p: number) => Math.min(5.99, Math.max(0, ((p - P0) / (P1 - P0)) * 6));
-
+/**
+ * Click-driven, not scroll-driven — same model as RDSScene. `t` animates
+ * to the clicked stage and the existing transform chains (congestion,
+ * prediction, blast radius, backup-path draw) all still work unchanged.
+ */
 export function MPLSScene() {
-  const ref = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
-  const [stage, setStage] = useState(-1);
+  const [stage, setStage] = useState(0);
+  const t = useMotionValue(0);
 
-  const p = useSceneProgress(ref);
-  const t = useTransform(p, toT);
+  useEffect(() => {
+    const controls = animate(t, stage, reduce ? { duration: 0 } : { ...SLOW, stiffness: 90, damping: 22 });
+    return () => controls.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage]);
 
-  useMotionValueEvent(p, "change", (v) => {
-    setStage(v < 0.05 ? -1 : Math.floor(toT(v)));
-  });
-
-  const s = stage;
   const nodes: SceneNode[] = PLANE.map((n) => ({
     ...n,
-    state: nodeState(n.id, s),
-    tag: TAGS[s]?.[n.id],
+    state: nodeState(n.id, stage),
+    tag: TAGS[stage]?.[n.id],
   }));
   const links: SceneLink[] = LINKS.map(([from, to]) => ({
     from,
     to,
-    state: linkState(`${from}-${to}`, s),
+    state: linkState(`${from}-${to}`, stage),
   }));
 
-  // ——— Failure propagates spatially instead of flashing on. ———
   const congestion = useTransform(t, [2, 3], [0, 1]);
   const prediction = useTransform(t, [2.6, 3.6], [0, 1]);
-  // Grows out of PE-1, holds through recovery, then settles to a quiet
-  // residual presence — the network breathes again, the ring doesn't vanish.
   const blastO = useTransform(t, [3.7, 4.3, 5.35, 5.95], [0, 1, 1, 0.55]);
   const blastS = useTransform(t, [3.7, 4.3, 5.35, 5.95], [0.3, 1, 1, 0.92]);
   const backupDraw = useTransform(t, [4.55, 5.3], [0, 1]);
@@ -155,121 +149,108 @@ export function MPLSScene() {
         { from: "pe2", to: "b", kind: "grow", tone: "verified", progress: backupDraw },
       ];
 
-  // ——— Scene framing: continuous, not boolean-triggered. ———
-  const introO = useTransform(p, [0.015, 0.055], [1, 0]);
-  const introY = useTransform(p, [0.015, 0.055], ["0vh", "-4vh"]);
-  const graphO = useTransform(p, [0.02, 0.075], [0.32, 1]);
-  const captionO = useBand(p, 0.04, 0.08);
   const captionPos = useTransform(t, (v) => smoothSteps(v, 0.35));
-  // Rises once the sequence resolves (t 5.55→5.95, i.e. local progress
-  // 0.783→0.833), then recedes before the pinned stage releases — a sticky
-  // block's bottom-anchored content otherwise scrolls up through the fixed
-  // header for a few frames as it unsticks. Receding first keeps that
-  // handoff a fade, not a collision, and still leaves a wide (~390px of
-  // scroll) fully-visible, fully-clickable window for the case-study link.
-  const titleO = useTransform(p, [0.783, 0.833, 0.93, 0.965], [0, 1, 1, 0]);
-  const titleY = useTransform(p, [0.783, 0.833], [24, 0]);
-  const titlePE = useTransform(titleO, (o) => (o > 0.5 ? "auto" : "none"));
-  const bgY = useTransform(p, [0, 1], reduce ? ["0vh", "0vh"] : ["4vh", "-4vh"]);
+  const titleO = useBand(t, 5.3, 5.8);
+  const titleY = useTransform(t, [5.3, 5.8], [16, 0]);
 
   return (
-    <section id="projects" ref={ref} className="relative h-[560vh]">
-      <div className="sticky top-0 h-[100svh] overflow-hidden">
-        <motion.span
+    <section id="projects" className="relative px-6 py-24 md:px-[6vw] md:py-32">
+      <Reveal>
+        <span className="font-mono text-[11px] tracking-[0.18em] text-system">
+          03 / SYSTEMS
+        </span>
+        <p className="font-display mt-3 text-3xl leading-tight font-bold text-foreground md:text-5xl">
+          One network.
+          <br />
+          <span className="text-system">One failure.</span>
+        </p>
+        <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">
+          Click a step to run the sequence — illustrative, modeled on MPLS Predictive Copilot&rsquo;s
+          own fault-injection demos.
+        </p>
+      </Reveal>
+
+      <div role="tablist" aria-label="Fault sequence" className="mt-10 flex flex-wrap gap-2">
+        {STAGES.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            role="tab"
+            aria-selected={stage === i}
+            onClick={() => setStage(i)}
+            className={cn(
+              "rounded-full border px-3.5 py-1.5 font-mono text-[11px] tracking-[0.08em] transition-colors duration-300 ease-settle",
+              stage === i
+                ? "border-system bg-system-soft text-foreground"
+                : "border-border-strong text-muted hover:text-foreground",
+            )}
+          >
+            {String(i + 1).padStart(2, "0")}
+          </button>
+        ))}
+      </div>
+
+      <div className="relative mt-6 h-[58vh] min-h-[26rem] rounded-2xl border border-border bg-surface/40 md:h-[50vh]">
+        <span
           aria-hidden="true"
-          style={{ y: bgY }}
-          className="font-display pointer-events-none absolute -right-[3vw] -bottom-[5vw] text-[30vw] leading-none font-bold tracking-tighter text-system/[0.07] select-none"
+          className="font-display pointer-events-none absolute -right-[2%] -bottom-[6%] text-[20vw] leading-none font-bold tracking-tighter text-system/[0.07] select-none md:text-[13vw]"
         >
           MPLS
-        </motion.span>
+        </span>
 
         <motion.div
-          style={{ opacity: graphO }}
-          className="absolute inset-x-6 top-[12%] bottom-[36%] lg:inset-x-[6vw] lg:top-[18%] lg:bottom-[20%]"
-        >
-          {/* Blast radius: propagates out of PE-1 once NetworkX runs, then
-              settles back — restrained, not a success flourish. */}
-          <motion.div
-            aria-hidden="true"
-            style={{ opacity: blastO, scale: blastS }}
-            className="absolute top-[34%] left-[62%] size-[46vw] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-border bg-accent-soft/40 lg:top-[58%] lg:left-[36%] lg:size-[34vh]"
-          />
+          aria-hidden="true"
+          style={{ opacity: blastO, scale: blastS }}
+          className="absolute top-[34%] left-[62%] size-[40vw] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-border bg-accent-soft/40 md:top-[58%] md:left-[36%] md:size-[28vh]"
+        />
+
+        <div className="absolute inset-x-6 top-[8%] bottom-[30%] md:inset-x-[5%] md:top-[14%] md:bottom-[16%]">
           <SceneGraph nodes={nodes} links={links} traces={traces} />
-        </motion.div>
-
-        <motion.div
-          style={{ opacity: introO, y: introY }}
-          className="pointer-events-none absolute bottom-8 left-6 max-w-md lg:left-[6vw]"
-        >
-          <span className="font-mono text-[11px] tracking-[0.18em] text-system">
-            02 / SYSTEMS
-          </span>
-          <p className="font-display mt-3 text-3xl leading-tight font-bold text-foreground lg:text-5xl">
-            One network.
-            <br />
-            <span className="text-system">One failure.</span>
-          </p>
-          <p className="mt-3 font-mono text-[11px] tracking-[0.12em] text-muted-2">
-            SCROLL TO RUN THE SEQUENCE ↓
-          </p>
-        </motion.div>
-
-        <motion.div
-          style={{ opacity: captionO }}
-          className="absolute right-6 bottom-8 left-6 lg:right-auto lg:bottom-[8%] lg:left-[6vw] lg:max-w-lg"
-        >
-          <div className={cn("transition-opacity duration-700 ease-settle", s >= 5 && "max-lg:opacity-0")}>
-            <CaptionReel
-              items={STAGES}
-              pos={captionPos}
-              note="ILLUSTRATIVE, MODELED ON THE PROJECT’S FAULT-INJECTION DEMOS"
-              minHeightClass="min-h-[5.25rem] lg:min-h-[3.5rem]"
-            />
-          </div>
-        </motion.div>
-
-        <motion.div
-          style={{ opacity: titleO, y: titleY, pointerEvents: titlePE }}
-          className="absolute right-6 bottom-8 left-6 has-[:focus-visible]:!pointer-events-auto has-[:focus-visible]:!opacity-100 lg:right-[6vw] lg:bottom-[7%] lg:left-auto lg:max-w-sm lg:text-right"
-        >
-          {mpls.year ? (
-            <span className="font-display block text-2xl leading-none font-bold text-system lg:text-4xl">
-              {mpls.year}
-            </span>
-          ) : null}
-          <h2 className="font-display mt-1 text-3xl leading-[0.95] font-bold text-foreground lg:text-5xl">
-            MPLS
-            <br />
-            <span className="text-system">Predictive</span>
-            <br />
-            Copilot
-          </h2>
-          <p className="mt-2 text-sm text-muted">{mpls.tagline}</p>
-          <p className="mt-2 font-mono text-[10px] tracking-[0.1em] text-muted-2 uppercase">
-            {mpls.stack.slice(0, 4).join(" · ")}
-          </p>
-          <div className="mt-4 flex flex-col items-start gap-2 text-sm lg:items-end">
-            <Link
-              href={`/projects/${mpls.slug}`}
-              className="group inline-flex items-center gap-1.5 border-b border-system/40 pb-0.5 text-foreground transition-colors duration-300 ease-settle hover:border-system"
-            >
-              Explore the system
-              <ArrowUpRight className="size-4 text-system transition-transform duration-300 ease-settle group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </Link>
-            {mpls.links.repo ? (
-              <a
-                href={mpls.links.repo}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group inline-flex items-center gap-1.5 font-mono text-[11px] tracking-[0.12em] text-muted transition-colors duration-300 ease-settle hover:text-foreground"
-              >
-                SOURCE
-                <ArrowUpRight className="size-3.5 transition-transform duration-300 ease-settle group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </a>
-            ) : null}
-          </div>
-        </motion.div>
+        </div>
       </div>
+
+      <div className="mt-6 max-w-2xl">
+        <CaptionReel
+          items={STAGES}
+          pos={captionPos}
+          note="ILLUSTRATIVE, MODELED ON THE PROJECT’S FAULT-INJECTION DEMOS"
+        />
+      </div>
+
+      <motion.div style={{ opacity: titleO, y: titleY }} className="mt-10 max-w-xl">
+        {mpls.year ? (
+          <span className="font-display block text-3xl leading-none font-bold text-system md:text-4xl">
+            {mpls.year}
+          </span>
+        ) : null}
+        <h2 className="font-display mt-2 text-2xl leading-[0.95] font-bold text-foreground md:text-3xl">
+          MPLS <span className="text-system">Predictive</span> Copilot
+        </h2>
+        <p className="mt-2 text-sm text-muted">{mpls.tagline}</p>
+        <p className="mt-2 font-mono text-[10px] tracking-[0.1em] text-muted-2 uppercase">
+          {mpls.stack.slice(0, 4).join(" · ")}
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-5 text-sm">
+          <Link
+            href={`/projects/${mpls.slug}`}
+            className="group inline-flex items-center gap-1.5 border-b border-system/40 pb-0.5 text-foreground transition-colors duration-300 ease-settle hover:border-system"
+          >
+            Explore the system
+            <ArrowUpRight className="size-4 text-system transition-transform duration-300 ease-settle group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </Link>
+          {mpls.links.repo ? (
+            <a
+              href={mpls.links.repo}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-center gap-1.5 font-mono text-[11px] tracking-[0.12em] text-muted transition-colors duration-300 ease-settle hover:text-foreground"
+            >
+              SOURCE
+              <ArrowUpRight className="size-3.5 transition-transform duration-300 ease-settle group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </a>
+          ) : null}
+        </div>
+      </motion.div>
     </section>
   );
 }

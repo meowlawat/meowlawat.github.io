@@ -9,27 +9,38 @@
   --foreground: #eeeae1;
   --muted: #9c9a92;
   --muted-2: #86847d;
-  /* Pigment palette, not LEDs. Every accent means one thing:
-     cobalt = information/signal, teal = system/infrastructure,
-     sage = active/verified/recovered, rust = security finding (only).
-     All clear 5:1+ on both the base and the rust-scene background. */
-  --accent: #7187b3;
-  --accent-foreground: #dde4f0;
-  --accent-soft: rgba(113, 135, 179, 0.14);
-  --accent-border: rgba(113, 135, 179, 0.4);
+  /* "Cybersecurity Sunshine" palette. Same semantic roles as before, new
+     hues: accent/system stay the cool blue-purple pair (information /
+     infrastructure), verified/alert stay the warm gold-brown pair
+     (success / finding). Each role still means exactly one thing site-wide.
+     Text-role colors (accent, system, verified, alert) checked at 4.5:1+
+     against both the base background and the alert-soft backdrop; comet
+     and waikawa (the two darker hues) are reserved for solid fills behind
+     light text instead, where they clear 4.5:1+ the other way round. */
+  --accent: #6580a4; /* Hoki — information/signal */
+  --accent-foreground: #dbe4ee;
+  --accent-soft: rgba(101, 128, 164, 0.14);
+  --accent-border: rgba(101, 128, 164, 0.4);
 
-  --system: #668b88;
-  --system-soft: rgba(102, 139, 136, 0.14);
+  --system: #5f6891; /* Waikawa Gray — system/infrastructure */
+  --system-soft: rgba(95, 104, 145, 0.14);
 
-  --verified: #9eaa7b;
-  --verified-foreground: #eef1e3;
-  --verified-soft: rgba(158, 170, 123, 0.14);
-  --verified-border: rgba(158, 170, 123, 0.4);
+  --verified: #a78452; /* Limed Oak — active/verified/recovered */
+  --verified-foreground: #f1e4d3;
+  --verified-soft: rgba(167, 132, 82, 0.14);
+  --verified-border: rgba(167, 132, 82, 0.4);
 
-  --alert: #b47767;
-  --alert-foreground: #f4e5df;
-  --alert-soft: #150e0d;
-  --alert-border: rgba(180, 119, 103, 0.35);
+  --alert: #9e7a61; /* Toast — security finding (only) */
+  --alert-foreground: #f3e5da;
+  --alert-soft: #150f0c;
+  --alert-border: rgba(158, 122, 97, 0.35);
+
+  /* Button fill: comet, the darkest/most saturated hue in the palette —
+     reads as a real button against the charcoal background, and clears
+     5.7:1 with the warm off-white label text on top of it. */
+  --button: #565681; /* Comet */
+  --button-hover: #4a4a70;
+  --button-foreground: var(--foreground);
 }
 
 @theme inline {
@@ -57,6 +68,9 @@
   --color-alert-foreground: var(--alert-foreground);
   --color-alert-soft: var(--alert-soft);
   --color-alert-border: var(--alert-border);
+  --color-button: var(--button);
+  --color-button-hover: var(--button-hover);
+  --color-button-foreground: var(--button-foreground);
   --font-sans: var(--font-geist-sans);
   --font-display: var(--font-space-grotesk);
   --font-mono: var(--font-geist-mono);
